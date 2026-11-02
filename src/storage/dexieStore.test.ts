@@ -138,4 +138,38 @@ describe('DexieRepertoireStore', () => {
       Object.keys(pruned.nodes).length,
     )
   })
+
+  it('remove leaves other repertoires intact', async () => {
+    const { db, store } = setup()
+    const { rep: first } = branchedRepertoire('r1', 'One')
+    const { rep: second } = branchedRepertoire('r2', 'Two')
+    await store.saveMany([first, second])
+
+    await store.remove(first.id)
+
+    expect(await store.load(first.id)).toBeUndefined()
+    expect(await store.load(second.id)).toEqual(second)
+    expect(await db.nodes.where('repertoireId').equals(second.id).count()).toBe(
+      Object.keys(second.nodes).length,
+    )
+  })
+
+  it('saveMany rolls back every repertoire when one fails', async () => {
+    const { db, store } = setup()
+    const { rep: good } = branchedRepertoire('r1', 'Good')
+    const { rep: other } = branchedRepertoire('r2', 'Bad')
+    // An object id is not a valid IndexedDB key, so bulkPut throws mid-transaction.
+    const rootNode = other.nodes[other.rootId]
+    if (!rootNode) throw new Error('fixture has no root')
+    const bad = {
+      ...other,
+      nodes: { ...other.nodes, [other.rootId]: { ...rootNode, id: {} as unknown as string } },
+    }
+
+    await expect(store.saveMany([good, bad])).rejects.toThrow()
+
+    expect(await store.load(good.id)).toBeUndefined()
+    expect(await db.repertoires.count()).toBe(0)
+    expect(await db.nodes.count()).toBe(0)
+  })
 })
