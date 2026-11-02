@@ -19,7 +19,10 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 - Before saying work is done, all three must pass: `npx vitest run`, `npm run build`, `npm run lint`.
 
 ## Git
-- **Commit or push only when the user asks.**
+- **Commit often, in small pieces.** Make one commit per logical step: a failing test, then its passing implementation, then a refactor or doc change. Do not batch unrelated changes into one commit. The user has asked for this granularity.
+- Each commit must leave `npx vitest run` and `npm run build` passing. A red test commit is allowed only when it is the failing-test step of TDD, and its message must say so (for example, `Add failing test for ...`).
+- Commit messages are short, imperative, and in English, with a subject line under 72 characters.
+- **Push only when the user asks.** Committing alone does not need a request; pushing does.
 - Main branch is `main`. The repo is private at github.com/yaminbkk/Varianto.
 - End commit messages with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - End PR descriptions with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
@@ -36,5 +39,5 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 - Sample repertoires must be created by us. Do not use course content from other people.
 
 ## Current status
-- Done: scaffold; `domain/repertoire` (commit `45d945b`); `domain/pgn` (not yet committed).
+- Done: scaffold; `domain/repertoire` (commit `45d945b`); `domain/pgn` (commit `170b1ee`).
 - Next: `storage` with Dexie and a JSON export/import round-trip (Phase 1, item 4).
