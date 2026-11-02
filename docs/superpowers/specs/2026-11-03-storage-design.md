@@ -1,6 +1,6 @@
 # Storage: Dexie schema and JSON export/import
 
-Status: **draft, awaiting approval.** No implementation until approved.
+Status: **approved 2026-11-03.** Scope is guest mode (local IndexedDB). Login with Supabase sync is a separate, later design.
 
 ## Intent
 Users keep their repertoires on their own device. Data must survive page reloads, and users must be able to back it up and move it to another browser as a JSON file. This is Phase 1 item 4 in `.md.local/implementation-plan.md`.
@@ -30,14 +30,29 @@ The domain type `Repertoire` in `src/domain/repertoire/tree.ts` stays unchanged.
 
 ## Design
 
+### Store interface
+App code uses only this interface, so a Supabase implementation can be added later without changing callers:
+```ts
+interface RepertoireStore {
+  save(rep: Repertoire): Promise<void>
+  load(id: string): Promise<Repertoire | undefined>
+  list(): Promise<RepertoireSummary[]> // { id, name, color }
+  remove(id: string): Promise<void>
+  saveMany(reps: Repertoire[]): Promise<void> // one transaction, used by import
+  loadAll(): Promise<Repertoire[]> // used by export
+}
+```
+This round implements `DexieRepertoireStore` only.
+
 ### Module layout
+- `src/storage/store.ts`: the `RepertoireStore` interface and `RepertoireSummary` type.
 - `src/storage/db.ts`: Dexie class `VariantoDb` with `version(1)` declaring the two tables.
 - `src/storage/convert.ts`: pure functions `toRows(rep)` → `{ repertoire, nodes }` and `fromRows(repertoire, nodes)` → `Repertoire`. No Dexie import, so they are unit-testable without a browser.
-- `src/storage/repertoireStore.ts`: `saveRepertoire`, `loadRepertoire`, `listRepertoires`, `deleteRepertoire`. Every write runs in one `rw` transaction over both tables.
+- `src/storage/dexieStore.ts`: `DexieRepertoireStore` implementing `RepertoireStore`. Every write runs in one `rw` transaction over both tables.
 - `src/storage/exchange.ts`: `exportRepertoires(reps)` → JSON string, and `importRepertoires(json)` → validated `Repertoire[]`.
 
 ### Saving
-`saveRepertoire` deletes all `nodes` with the repertoire's `repertoireId`, then bulk-puts the new rows and the repertoire row. Deleting first removes nodes that were pruned from the tree.
+`save` deletes all `nodes` with the repertoire's `repertoireId`, then bulk-puts the new rows and the repertoire row. Deleting first removes nodes that were pruned from the tree.
 
 ### JSON format
 ```json
@@ -60,16 +75,12 @@ Reject, with a thrown error and no writes, when:
 
 Once validation passes, all repertoires are written in one transaction.
 
-## Decisions I made (my call, please check)
-1. **Import with an existing `id`** replaces the stored repertoire. This keeps re-imports idempotent. A "keep both" option would need a UI, which is out of scope.
+## Decisions
+1. **Import with an existing `id`** replaces the stored repertoire, so re-imports are idempotent.
 2. **Dexie version 1** is the starting schema. Future changes add `version(2)` with a migration.
-3. **Tests use `fake-indexeddb`** (Apache-2.0, compatible with GPL-3.0) so Vitest can run Dexie in Node. This adds one dev dependency. Alternative: test only `convert.ts` and `exchange.ts` in Vitest and leave Dexie to a browser test later. I recommend adding `fake-indexeddb`.
+3. **Tests use `fake-indexeddb`** (Apache-2.0, compatible with GPL-3.0) as a dev dependency so Vitest can run Dexie in Node.
 
 ## Testing
 - `convert.test.ts`: `fromRows(...toRows(rep))` equals `rep` for default, branched, and FEN-started repertoires.
 - `exchange.test.ts`: export then import equals the input. Malformed inputs (each rule above) throw and leave the store untouched.
-- `repertoireStore.test.ts` (with `fake-indexeddb`): save, load, list, delete. Saving a pruned tree removes the orphaned node rows.
-
-## Open questions for the approver
-- Approve decision 3 (adding `fake-indexeddb`), or prefer leaving Dexie untested until a browser test exists?
-- Approve decision 1 (import replaces on matching `id`)?
+- `dexieStore.test.ts` (with `fake-indexeddb`): save, load, list, remove, saveMany, loadAll. Saving a pruned tree removes the orphaned node rows.
