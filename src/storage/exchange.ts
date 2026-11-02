@@ -76,6 +76,10 @@ function readRepertoire(raw: unknown, index: number): Repertoire {
 
   const parsed: Record<string, MoveNode> = {}
   for (const [nodeId, node] of Object.entries(nodes)) {
+    // Assigning parsed["__proto__"] would set the prototype, not an own key.
+    if (nodeId === '__proto__') {
+      throw new ImportError(`Repertoire "${id}": node key "__proto__" is not allowed`)
+    }
     parsed[nodeId] = readNode(id, nodeId, node)
   }
   return { id, name, color, rootId, nodes: parsed }
@@ -106,7 +110,10 @@ function readNode(repId: string, nodeId: string, raw: unknown): MoveNode {
 function validateTree(rep: Repertoire): void {
   const where = (nodeId: string) => `Repertoire "${rep.id}", node "${nodeId}"`
 
-  if (!rep.nodes[rep.rootId]) {
+  // Own keys only: plain lookups would also find inherited names like "toString".
+  const has = (nodeId: string) => Object.hasOwn(rep.nodes, nodeId)
+
+  if (!has(rep.rootId)) {
     throw new ImportError(`Repertoire "${rep.id}": rootId "${rep.rootId}" is not in nodes`)
   }
 
@@ -116,11 +123,11 @@ function validateTree(rep: Repertoire): void {
   }
 
   for (const node of Object.values(rep.nodes)) {
-    if (node.parentId !== null && !rep.nodes[node.parentId]) {
+    if (node.parentId !== null && !has(node.parentId)) {
       throw new ImportError(`${where(node.id)}: parent "${node.parentId}" does not exist`)
     }
     for (const childId of node.childIds) {
-      if (!rep.nodes[childId]) {
+      if (!has(childId)) {
         throw new ImportError(`${where(node.id)}: child "${childId}" does not exist`)
       }
     }
