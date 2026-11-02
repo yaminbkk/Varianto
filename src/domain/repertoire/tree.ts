@@ -26,7 +26,7 @@ export type IdFactory = () => string
 
 const defaultId: IdFactory = () => crypto.randomUUID()
 
-function getNode(rep: Repertoire, nodeId: string): MoveNode {
+export function getNode(rep: Repertoire, nodeId: string): MoveNode {
   const node = rep.nodes[nodeId]
   if (!node) throw new Error(`Unknown node: ${nodeId}`)
   return node
@@ -36,13 +36,14 @@ export function createRepertoire(
   name: string,
   color: Color,
   newId: IdFactory = defaultId,
+  startFen: string = DEFAULT_POSITION,
 ): Repertoire {
   const rootId = newId()
   const root: MoveNode = {
     id: rootId,
     parentId: null,
     san: null,
-    fen: DEFAULT_POSITION,
+    fen: startFen,
     comment: '',
     childIds: [],
   }

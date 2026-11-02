@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@mliebelt/pgn-parser": "^1.4.19",
     "chess.js": "^1.4.0",
     "chessground": "^9.2.1",
     "dexie": "^4.4.7",
