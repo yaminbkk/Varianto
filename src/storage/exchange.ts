@@ -110,6 +110,11 @@ function validateTree(rep: Repertoire): void {
     throw new ImportError(`Repertoire "${rep.id}": rootId "${rep.rootId}" is not in nodes`)
   }
 
+  const root = rep.nodes[rep.rootId]
+  if (root && root.parentId !== null) {
+    throw new ImportError(`${where(root.id)}: root must have parentId null`)
+  }
+
   for (const node of Object.values(rep.nodes)) {
     if (node.parentId !== null && !rep.nodes[node.parentId]) {
       throw new ImportError(`${where(node.id)}: parent "${node.parentId}" does not exist`)
