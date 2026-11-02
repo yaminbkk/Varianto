@@ -34,10 +34,14 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 
 ## Prohibitions
 - Do not decompile or copy code from ChessReps.
-- Do not add user accounts, a backend, analytics, or trackers. They conflict with local-first.
+- Guest mode is the default and must work fully without an account: all data in IndexedDB, no network calls.
+- Accounts are optional. A logged-in user syncs to Supabase (decided 2026-11-03). Supabase is the only backend; do not add any other.
+- App code talks to storage only through the `RepertoireStore` interface, so guest (Dexie) and login (Supabase) stay interchangeable.
+- Do not add analytics or trackers.
 - Do not add dependencies whose license is incompatible with GPL-3.0.
 - Sample repertoires must be created by us. Do not use course content from other people.
 
 ## Current status
 - Done: scaffold; `domain/repertoire` (commit `45d945b`); `domain/pgn` (commit `170b1ee`).
-- Next: `storage` with Dexie and a JSON export/import round-trip (Phase 1, item 4).
+- In progress: guest `storage` with Dexie, the `RepertoireStore` interface, and a JSON export/import round-trip (Phase 1, item 4). Design: `docs/superpowers/specs/2026-11-03-storage-design.md`.
+- Later: login with Supabase sync, as its own brainstorm and design (auth, Row Level Security, moving guest data into an account).
