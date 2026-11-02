@@ -156,6 +156,22 @@ describe('parseRepertoires validation', () => {
     expect(() => parseRepertoires(json)).toThrow(ImportError)
   })
 
+  it('rejects a root whose parentId points at a descendant', () => {
+    const json = corrupted((f) => {
+      const rep = only(f)
+      nodeOf(rep, rep.rootId).parentId = 'aa1'
+    })
+    expect(() => parseRepertoires(json)).toThrow(ImportError)
+  })
+
+  it('rejects a root whose parentId is its own id', () => {
+    const json = corrupted((f) => {
+      const rep = only(f)
+      nodeOf(rep, rep.rootId).parentId = rep.rootId
+    })
+    expect(() => parseRepertoires(json)).toThrow(ImportError)
+  })
+
   it('rejects a cycle', () => {
     const json = corrupted((f) => {
       // The deepest node (Nf3) lists its ancestor e4 as a child.
