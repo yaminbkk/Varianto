@@ -22,7 +22,7 @@ Users keep their repertoires on their own device. Data must survive page reloads
 ## Approach (chosen: B)
 Two tables, following the draft in `.md.local/architecture.md`:
 - `repertoires`: primary key `id`. Fields: `id`, `name`, `color`, `rootId`.
-- `nodes`: primary key `id`. Indexed by `repertoireId`. Fields: `id`, `repertoireId`, `parentId`, `san`, `fen`, `comment`, `childIds`.
+- `nodes`: compound primary key `[repertoireId+id]`, indexed by `repertoireId`. (Changed from `id` alone during planning: node ids are not unique across repertoires, so an `id`-only key would let one repertoire overwrite another's nodes.) Fields: `id`, `repertoireId`, `parentId`, `san`, `fen`, `comment`, `childIds`.
 
 Rationale for B over A: editing one move writes one row, and the tree can grow without rewriting whole repertoires. The cost is that we must rebuild the in-memory tree from rows, which the conversion functions below handle.
 
