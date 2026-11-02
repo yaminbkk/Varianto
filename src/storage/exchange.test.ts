@@ -78,43 +78,77 @@ describe('exportRepertoires / parseRepertoires', () => {
 })
 
 describe('parseRepertoires validation', () => {
+  // Pins both the error class and the rule that fired.
+  function expectRejected(json: string, fragment: string): void {
+    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expect(() => parseRepertoires(json)).toThrow(fragment)
+  }
+
+  // JSON.stringify of an object literal cannot produce an own "__proto__" key,
+  // so these files are written as raw text.
+  function protoFile(rootId: string, rootChildIds: string[], protoParentId: string | null): string {
+    const node = (id: string, parentId: string | null, childIds: string[]) =>
+      `{"id":"${id}","parentId":${parentId === null ? 'null' : `"${parentId}"`},"san":null,"fen":"f","comment":"","childIds":${JSON.stringify(childIds)}}`
+    return (
+      '{"format":"varianto-repertoires","version":1,"exportedAt":"x","repertoires":' +
+      `[{"id":"r","name":"R","color":"white","rootId":"${rootId}","nodes":{` +
+      `"root":${node('root', null, rootChildIds)},` +
+      `"__proto__":${node('__proto__', protoParentId, [])}}}]}`
+    )
+  }
+
   it('rejects text that is not JSON', () => {
-    expect(() => parseRepertoires('not json')).toThrow(ImportError)
+    expectRejected('not json', 'not valid JSON')
   })
 
   it('rejects a wrong format', () => {
     const json = corrupted((f) => {
       f.format = 'something-else'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'Not a varianto-repertoires file')
   })
 
   it('rejects an unsupported version', () => {
     const json = corrupted((f) => {
       f.version = 2
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'Unsupported export version')
   })
 
   it('rejects repertoires that is not an array', () => {
     const json = corrupted((f) => {
       ;(f as unknown as { repertoires: unknown }).repertoires = {}
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, '"repertoires" must be an array')
   })
 
   it('rejects an unknown colour', () => {
     const json = corrupted((f) => {
       ;(only(f) as unknown as { color: string }).color = 'red'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'invalid color')
   })
 
   it('rejects a rootId missing from nodes', () => {
     const json = corrupted((f) => {
       only(f).rootId = 'ghost'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'rootId "ghost" is not in nodes')
+  })
+
+  it('rejects a rootId that is only an inherited property name', () => {
+    const json = corrupted((f) => {
+      only(f).rootId = 'toString'
+    })
+    expectRejected(json, 'rootId "toString" is not in nodes')
+  })
+
+  it('rejects a node keyed "__proto__" that the root lists as a child', () => {
+    expectRejected(protoFile('root', ['__proto__'], 'root'), '"__proto__"')
+  })
+
+  it('rejects a rootId of "__proto__"', () => {
+    expectRejected(protoFile('__proto__', [], null), '"__proto__"')
   })
 
   it('rejects a childIds entry pointing to a missing node', () => {
@@ -122,7 +156,7 @@ describe('parseRepertoires validation', () => {
       const rep = only(f)
       nodeOf(rep, rep.rootId).childIds.push('ghost')
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'child "ghost" does not exist')
   })
 
   it('rejects a parentId pointing to a missing node', () => {
@@ -130,7 +164,7 @@ describe('parseRepertoires validation', () => {
       const rep = only(f)
       nodeOf(rep, 'aa1').parentId = 'ghost'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'parent "ghost" does not exist')
   })
 
   it('rejects a child whose parentId does not match the node listing it', () => {
@@ -138,7 +172,7 @@ describe('parseRepertoires validation', () => {
       // ab1 (e5) is a child of aa1 (e4); claim the root as its parent instead.
       nodeOf(only(f), 'ab1').parentId = 'a1'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'does not match "aa1"')
   })
 
   it('rejects a node unreachable from the root', () => {
@@ -153,7 +187,7 @@ describe('parseRepertoires validation', () => {
         childIds: [],
       }
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'not reachable from the root')
   })
 
   it('rejects a root whose parentId points at a descendant', () => {
@@ -161,7 +195,7 @@ describe('parseRepertoires validation', () => {
       const rep = only(f)
       nodeOf(rep, rep.rootId).parentId = 'aa1'
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'root must have parentId null')
   })
 
   it('rejects a root whose parentId is its own id', () => {
@@ -169,21 +203,30 @@ describe('parseRepertoires validation', () => {
       const rep = only(f)
       nodeOf(rep, rep.rootId).parentId = rep.rootId
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'root must have parentId null')
   })
 
   it('rejects a cycle', () => {
     const json = corrupted((f) => {
-      // The deepest node (Nf3) lists its ancestor e4 as a child.
+      // The deepest node (Nf3) lists its ancestor e4 as a child. e4's parentId
+      // is the root, so the parent check fires before any node is visited twice.
       nodeOf(only(f), 'ac1').childIds.push('aa1')
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'node "aa1": parentId "a1" does not match "ac1"')
+  })
+
+  it('rejects a node listed twice by the same parent', () => {
+    const json = corrupted((f) => {
+      const rep = only(f)
+      nodeOf(rep, rep.rootId).childIds.push('aa1')
+    })
+    expectRejected(json, 'node "aa1": reached twice')
   })
 
   it('rejects the same repertoire id twice in one file', () => {
     const json = corrupted((f) => {
       f.repertoires.push(structuredClone(only(f)))
     })
-    expect(() => parseRepertoires(json)).toThrow(ImportError)
+    expectRejected(json, 'Duplicate repertoire id')
   })
 })
