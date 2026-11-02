@@ -49,7 +49,7 @@ This round implements `DexieRepertoireStore` only.
 - `src/storage/db.ts`: Dexie class `VariantoDb` with `version(1)` declaring the two tables.
 - `src/storage/convert.ts`: pure functions `toRows(rep)` → `{ repertoire, nodes }` and `fromRows(repertoire, nodes)` → `Repertoire`. No Dexie import, so they are unit-testable without a browser.
 - `src/storage/dexieStore.ts`: `DexieRepertoireStore` implementing `RepertoireStore`. Every write runs in one `rw` transaction over both tables.
-- `src/storage/exchange.ts`: `exportRepertoires(reps)` → JSON string, and `importRepertoires(json)` → validated `Repertoire[]`.
+- `src/storage/exchange.ts`: `exportRepertoires(reps)` → JSON string, and `parseRepertoires(json)` → validated `Repertoire[]` (a pure validator that touches no storage; the caller writes the result with `store.saveMany`).
 
 ### Saving
 `save` deletes all `nodes` with the repertoire's `repertoireId`, then bulk-puts the new rows and the repertoire row. Deleting first removes nodes that were pruned from the tree.
@@ -73,7 +73,7 @@ Reject, with a thrown error and no writes, when:
 - A node's `parentId` does not list it in `childIds`.
 - `color` is not `white` or `black`.
 
-Once validation passes, all repertoires are written in one transaction.
+Once validation passes, the caller writes all repertoires in one transaction via `store.saveMany`.
 
 ## Decisions
 1. **Import with an existing `id`** replaces the stored repertoire, so re-imports are idempotent.
