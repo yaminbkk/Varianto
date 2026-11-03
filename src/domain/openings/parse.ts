@@ -26,7 +26,7 @@ function validateMoves(pgn: string): string | null {
 }
 
 // Move numbers dropped, so "1.e4 e5" and "1. e4 e5" share one key.
-function sanSequence(pgn: string): string {
+export function sanSequence(pgn: string): string {
   return pgn
     .split(/\s+/)
     .map((t) => t.replace(/^\d+\.+/, ''))

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "openings": "node scripts/build-openings.ts",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests"
   },
