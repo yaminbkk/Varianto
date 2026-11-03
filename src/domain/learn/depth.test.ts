@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Course, CourseLine } from './courses'
-import { depthChoices, learnerMoves, linesFor } from './depth'
+import { defaultSide, depthChoices, linesFor, lineOwner } from './depth'
 
 function courseOf(...plies: number[]): Course {
   const lines: CourseLine[] = plies.map((p, i) => ({
@@ -11,28 +11,37 @@ function courseOf(...plies: number[]): Course {
   return { id: 'x', name: 'X', lines, ecoFrom: 'C50', ecoTo: 'C50' }
 }
 
-describe('learnerMoves', () => {
-  it('counts the plies the learner plays', () => {
-    expect(learnerMoves(5, 'white')).toBe(3)
-    expect(learnerMoves(5, 'black')).toBe(2)
-    expect(learnerMoves(1, 'black')).toBe(0)
-    expect(learnerMoves(1, 'white')).toBe(1)
+describe('lineOwner', () => {
+  it('belongs to the side that played the last move', () => {
+    expect(lineOwner(1)).toBe('white')
+    expect(lineOwner(2)).toBe('black')
+    expect(lineOwner(5)).toBe('white')
+    expect(lineOwner(6)).toBe('black')
   })
 })
 
 describe('linesFor', () => {
+  // White owns the odd lengths (3, 7, 11), Black the even ones (8, 12).
   const course = courseOf(12, 3, 8, 11, 7)
 
-  it('filters by depth and orders by length', () => {
+  it('keeps only the learner side lines, filtered by depth and ordered by length', () => {
     expect(linesFor(course, 'essentials', 'white').map((l) => l.plies)).toEqual([3, 7])
-    expect(linesFor(course, 'advanced', 'white').map((l) => l.plies)).toEqual([3, 7, 8, 11])
-    expect(linesFor(course, 'full', 'white').map((l) => l.plies)).toEqual([3, 7, 8, 11, 12])
+    expect(linesFor(course, 'advanced', 'white').map((l) => l.plies)).toEqual([3, 7, 11])
+    expect(linesFor(course, 'full', 'white').map((l) => l.plies)).toEqual([3, 7, 11])
+    expect(linesFor(course, 'essentials', 'black').map((l) => l.plies)).toEqual([])
+    expect(linesFor(course, 'advanced', 'black').map((l) => l.plies)).toEqual([8])
+    expect(linesFor(course, 'full', 'black').map((l) => l.plies)).toEqual([8, 12])
   })
 
-  it('excludes lines where the learner has no move', () => {
-    const c = courseOf(1, 2)
-    expect(linesFor(c, 'full', 'black').map((l) => l.plies)).toEqual([2])
-    expect(linesFor(c, 'full', 'white').map((l) => l.plies)).toEqual([1, 2])
+  it('leaves out a Black deviation when learning as White', () => {
+    // Like "Italian Game: Paris Defense": five plies of the main line, then Black's ...d6.
+    const c = courseOf(5, 6)
+    expect(linesFor(c, 'full', 'white').map((l) => l.plies)).toEqual([5])
+    expect(linesFor(c, 'full', 'black').map((l) => l.plies)).toEqual([6])
+  })
+
+  it('has nothing for Black in a one-ply line', () => {
+    expect(linesFor(courseOf(1), 'full', 'black')).toEqual([])
   })
 
   it('keeps library order for lines of equal length', () => {
@@ -41,21 +50,34 @@ describe('linesFor', () => {
   })
 })
 
+describe('defaultSide', () => {
+  it('picks the side with more lines', () => {
+    expect(defaultSide(courseOf(2, 4, 3))).toBe('black')
+    expect(defaultSide(courseOf(1, 3, 4))).toBe('white')
+  })
+
+  it('prefers White on a tie and when there are no lines', () => {
+    expect(defaultSide(courseOf(3, 4))).toBe('white')
+    expect(defaultSide(courseOf())).toBe('white')
+  })
+})
+
 describe('depthChoices', () => {
   it('offers every level when each adds lines', () => {
-    expect(depthChoices(courseOf(3, 8, 12), 'white')).toEqual(['essentials', 'advanced', 'full'])
+    expect(depthChoices(courseOf(3, 9, 13), 'white')).toEqual(['essentials', 'advanced', 'full'])
   })
 
   it('collapses to full when all levels hold the same lines', () => {
-    expect(depthChoices(courseOf(4, 4), 'white')).toEqual(['full'])
-    expect(depthChoices(courseOf(4), 'white')).toEqual(['full'])
+    expect(depthChoices(courseOf(5, 5), 'white')).toEqual(['full'])
+    expect(depthChoices(courseOf(5), 'white')).toEqual(['full'])
   })
 
   it('skips levels that add nothing', () => {
-    expect(depthChoices(courseOf(3, 12), 'white')).toEqual(['essentials', 'full'])
+    expect(depthChoices(courseOf(3, 13), 'white')).toEqual(['essentials', 'full'])
   })
 
   it('is empty when the learner has no lines', () => {
     expect(depthChoices(courseOf(1), 'black')).toEqual([])
+    expect(depthChoices(courseOf(5, 6), 'white')).toEqual(['full'])
   })
 })

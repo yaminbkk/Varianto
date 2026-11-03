@@ -12,7 +12,7 @@ function courseOf(...plies: number[]): Course {
 }
 
 describe('nextLine', () => {
-  const course = courseOf(8, 3, 12)
+  const course = courseOf(9, 3, 13)
 
   it('returns the shortest unlearned line within the depth', () => {
     expect(nextLine(course, 'full', 'white', new Set())?.key).toBe('k1')
@@ -33,8 +33,8 @@ describe('nextLine', () => {
 
 describe('courseProgress', () => {
   it('counts only lines inside the depth and side', () => {
-    const course = courseOf(1, 3, 8, 12)
-    expect(courseProgress(course, 'advanced', 'black', new Set(['k1', 'k3']))).toEqual({
+    const course = courseOf(1, 3, 8, 12, 6)
+    expect(courseProgress(course, 'advanced', 'black', new Set(['k2', 'k3']))).toEqual({
       done: 1,
       total: 2,
     })
