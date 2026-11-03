@@ -15,7 +15,6 @@ interface ParsedMove {
   notation: { notation: string }
   commentAfter?: string | null
   commentDiag?: { comment?: string } | null
-  /** Each entry is an alternative line to the move it is attached to. */
   variations: ParsedMove[][]
 }
 
@@ -31,7 +30,6 @@ function cleanComment(raw: string): string {
     .trim()
 }
 
-/** PGN comments cannot contain braces, so they are removed on export. */
 function writeComment(raw: string): string {
   return raw.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim()
 }

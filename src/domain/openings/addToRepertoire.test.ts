@@ -38,7 +38,7 @@ describe('addOpeningToRepertoire', () => {
     const first = addOpeningToRepertoire(rep, parisGambit, sequentialIds('i')).repertoire
     const second = addOpeningToRepertoire(first, parisGambit, sequentialIds('j')).repertoire
 
-    expect(Object.keys(first.nodes).length).toBe(6) // root plus 5 moves
+    expect(Object.keys(first.nodes).length).toBe(6)
     expect(Object.keys(second.nodes).length).toBe(Object.keys(first.nodes).length)
   })
 

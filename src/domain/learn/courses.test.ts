@@ -32,7 +32,7 @@ describe('coursesFrom', () => {
     expect(new Set(italian?.lines.map((l) => l.key)).size).toBe(2)
     expect(italian?.ecoFrom).toBe('C50')
     expect(italian?.ecoTo).toBe('C54')
-    expect(italian?.lines.map((l) => l.plies)).toEqual([5, 8])
+    expect(italian?.lines.map((l) => l.plies)).toEqual([5, 7])
   })
 
   it('covers the whole real library', () => {

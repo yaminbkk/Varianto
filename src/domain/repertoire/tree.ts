@@ -5,11 +5,9 @@ export type Color = 'white' | 'black'
 export interface MoveNode {
   id: string
   parentId: string | null
-  /** SAN of the move that reached this node; null only for the root. */
   san: string | null
   fen: string
   comment: string
-  /** Children in insertion order (first child is the main line). */
   childIds: string[]
 }
 
