@@ -421,3 +421,8 @@ div.alert p {
 a.result {
   text-decoration: none;
 }
+
+.explain {
+  margin: 0.5rem 0;
+  color: var(--text);
+}

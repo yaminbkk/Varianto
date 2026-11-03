@@ -12,6 +12,8 @@ import {
   type Lesson,
 } from '../../domain/learn/lesson'
 import { courseProgress, nextLine } from '../../domain/learn/nextLine'
+import { explanationFor } from '../../domain/learn/moveExplanations'
+import { soundKindFor, type SoundKind } from '../../domain/learn/soundKind'
 import { sanSequence } from '../../domain/openings/parse'
 import { sanFromSquares } from '../../domain/repertoire/squares'
 import type { Color } from '../../domain/repertoire/tree'
@@ -19,6 +21,7 @@ import { useEffect } from 'react'
 import Board from '../Board'
 import { coursePath, learnPath } from '../paths'
 import SkipLink from '../SkipLink'
+import { loadSoundEnabled, playSound, saveSoundEnabled } from '../sound'
 import { useCourses } from '../useCourses'
 import { useProgress } from '../useProgress'
 
@@ -96,6 +99,8 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
   const [lineKey, setLineKey] = useState<string | null | undefined>(undefined)
   // Lines finished with Solve this visit: they do not count as learned, but Next line moves past them.
   const [skipped, setSkipped] = useState<ReadonlySet<string>>(new Set())
+  // Curated, opening-specific move explanations; the lesson falls back to computed ones for the rest.
+  const [explanations, setExplanations] = useState<Record<string, string> | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -116,7 +121,22 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
     }
   }, [progress, course, depth, side])
 
-  if (learned === null || lineKey === undefined) {
+  useEffect(() => {
+    let alive = true
+    import('../../data/move-explanations.json').then(
+      (mod) => {
+        if (alive) setExplanations(mod.default as Record<string, string>)
+      },
+      () => {
+        if (alive) setExplanations({})
+      },
+    )
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  if (learned === null || lineKey === undefined || explanations === null) {
     return (
       <Shell>
         <p role="status">Loading lesson...</p>
@@ -161,6 +181,7 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
       depth={depth}
       side={side}
       learned={learned}
+      explanations={explanations}
       onLearned={onLearned}
       onNext={(nextLearned, solvedKey) => {
         const nextSkipped = solvedKey ? new Set([...skipped, solvedKey]) : skipped
@@ -179,6 +200,7 @@ function Session({
   depth,
   side,
   learned,
+  explanations,
   onLearned,
   onNext,
 }: {
@@ -187,6 +209,7 @@ function Session({
   depth: Depth
   side: Color
   learned: ReadonlySet<string>
+  explanations: Readonly<Record<string, string>>
   onLearned: (key: string) => Promise<void>
   onNext: (learned: ReadonlySet<string>, solvedKey: string | null) => void
 }) {
@@ -196,21 +219,49 @@ function Session({
   const [boardKey, setBoardKey] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [hintOn, setHintOn] = useState(false)
-  const [reply, setReply] = useState<string | null>(() =>
-    side === 'black' ? `White played ${sans[0] ?? ''}.` : null,
-  )
   const opponent = side === 'white' ? 'Black' : 'White'
+  const [soundOn, setSoundOn] = useState(loadSoundEnabled)
+
+  /** Plain-language explanation of the move at `index`, given the position it was played in. */
+  function explain(index: number, fens: readonly string[]): string {
+    return explanationFor(explanations, sans, index, fens[index] ?? '')
+  }
+
+  const [notes, setNotes] = useState<string[]>(() =>
+    side === 'black' && sans[0]
+      ? [`White played ${sans[0]}. ${explain(0, startLesson(sans, side).fens)}`]
+      : [],
+  )
+
+  function sfx(kind: SoundKind, delayMs = 0) {
+    if (!soundOn) return
+    if (delayMs === 0) playSound(kind)
+    else window.setTimeout(() => playSound(kind), delayMs)
+  }
+
+  function toggleSound() {
+    const next = !soundOn
+    setSoundOn(next)
+    saveSoundEnabled(next)
+    if (next) playSound('move')
+  }
 
   function apply(next: Lesson, previous: Lesson) {
     setLesson(next)
     setHintOn(false)
     setMessage(null)
-    const replyIndex = previous.cursor + 1
-    setReply(
-      next.cursor > previous.cursor + 1
-        ? `${opponent} played ${next.sans[replyIndex] ?? ''}.`
-        : null,
-    )
+    const moveIndex = previous.cursor
+    const replyIndex = moveIndex + 1
+    const replied = next.cursor > moveIndex + 1
+    const played = next.sans[moveIndex] ?? ''
+    const replySan = next.sans[replyIndex] ?? ''
+    setNotes([
+      `You played ${played}. ${explain(moveIndex, previous.fens)}`,
+      ...(replied ? [`${opponent} played ${replySan}. ${explain(replyIndex, previous.fens)}`] : []),
+    ])
+    sfx(soundKindFor(played))
+    if (replied) sfx(soundKindFor(replySan), 220)
+    if (next.finished && !previous.finished) sfx('finish', replied ? 480 : 260)
     if (next.finished && !previous.finished && !next.solved) void onLearned(line.key)
   }
 
@@ -222,6 +273,7 @@ function Session({
       return
     }
     setBoardKey((k) => k + 1)
+    sfx('wrong')
     if (outcome.kind === 'wrong') {
       setMessage(`That is a fine move, but this line plays ${outcome.expected}.`)
     } else {
@@ -245,7 +297,7 @@ function Session({
     setLesson(next)
     setHintOn(false)
     setMessage(null)
-    setReply(null)
+    setNotes([])
     setBoardKey((k) => k + 1)
   }
 
@@ -265,6 +317,11 @@ function Session({
         <p className="hint">
           Playing {side === 'white' ? 'White' : 'Black'} · {lineCount} of {total} lines learned
         </p>
+        <div className="actions">
+          <button type="button" className="btn" aria-pressed={soundOn} onClick={toggleSound}>
+            Sound: {soundOn ? 'on' : 'off'}
+          </button>
+        </div>
 
         <div className="board-layout">
           <div className="board-column">
@@ -284,7 +341,11 @@ function Session({
               <progress value={lesson.cursor} max={lesson.sans.length} aria-label="Line progress">
                 {lesson.cursor} of {lesson.sans.length}
               </progress>
-              {reply && <p>{reply}</p>}
+              {notes.map((note) => (
+                <p key={note} className="explain">
+                  {note}
+                </p>
+              ))}
               {lesson.finished ? (
                 <p role="status">
                   {lesson.solved
