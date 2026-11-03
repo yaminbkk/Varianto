@@ -25,8 +25,21 @@ function validateMoves(pgn: string): string | null {
   return null
 }
 
+// Move numbers dropped, so "1.e4 e5" and "1. e4 e5" share one key.
+function sanSequence(pgn: string): string {
+  return pgn
+    .split(/\s+/)
+    .map((t) => t.replace(/^\d+\.+/, ''))
+    .filter((t) => t !== '')
+    .join(' ')
+}
+
 export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine[] {
   const lines = text.split('\n')
+  const header = (lines[0] ?? '').replace(/\r$/, '').trim().split('\t')
+  if (header.join('\t') !== 'eco\tname\tpgn') {
+    throw new Error(`${sourceLabel}:1: expected header "eco\tname\tpgn", got "${header.join('\t')}"`)
+  }
   const seen = new Set<string>()
   const result: OpeningLine[] = []
 
@@ -55,7 +68,7 @@ export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine
     const problem = validateMoves(pgn)
     if (problem !== null) fail(problem)
 
-    const key = `${eco}\u0000${name}\u0000${pgn}`
+    const key = `${eco}\u0000${name}\u0000${sanSequence(pgn)}`
     if (seen.has(key)) {
       throw new Error(`Duplicate opening ${eco} "${name}" at ${sourceLabel}:${lineNumber}`)
     }
