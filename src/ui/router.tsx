@@ -5,7 +5,7 @@ import { StoreProvider } from './StoreContext'
 import type { AppState } from './store/appStore'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
-import RepertoirePage from './pages/RepertoirePage'
+import BoardPage from './pages/BoardPage'
 
 // Must match repertoirePath(id) in ./paths.
 const repertoireRoute = '/r/:id'
@@ -20,7 +20,7 @@ export function createAppRouter(store: StoreApi<AppState>) {
       ),
       children: [
         { path: homePath, element: <HomePage /> },
-        { path: repertoireRoute, element: <RepertoirePage /> },
+        { path: repertoireRoute, element: <BoardPage /> },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

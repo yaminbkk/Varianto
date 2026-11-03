@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Color } from '../../domain/repertoire/tree'
 import ActionError from '../ActionError'
@@ -6,6 +6,7 @@ import ImportPgn from '../ImportPgn'
 import OpeningPicker from '../OpeningPicker'
 import { repertoirePath } from '../paths'
 import SideField from '../SideField'
+import SkipLink from '../SkipLink'
 import { SAVE_ERROR_MESSAGE, failureMessage, useAppStore, useStoreSnapshot } from '../useAppStore'
 
 type Panel = 'opening' | 'import' | null
@@ -57,12 +58,6 @@ export default function HomePage() {
     setPanel((current) => (current === next ? null : next))
   }
 
-  // A plain href="#main" would change the hash route, so move focus by hand.
-  function skipToMain(e: MouseEvent) {
-    e.preventDefault()
-    mainRef.current?.focus()
-  }
-
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     if (name.trim() === '') {
@@ -111,9 +106,7 @@ export default function HomePage() {
 
   return (
     <>
-      <a className="skip-link" href="#main" onClick={skipToMain}>
-        Skip to main content
-      </a>
+      <SkipLink targetRef={mainRef} />
       <main id="main" ref={mainRef} tabIndex={-1} className="app">
         <h1>Varianto</h1>
         <p className="hint">A free, local-first chess opening trainer.</p>
