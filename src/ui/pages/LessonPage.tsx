@@ -217,6 +217,7 @@ function Session({
   const sans = sanSequence(line.line.pgn).split(' ')
   const [lesson, setLesson] = useState<Lesson>(() => startLesson(sans, side))
   const [boardKey, setBoardKey] = useState(0)
+  const [resetToken, setResetToken] = useState(0)
   const [message, setMessage] = useState<string | null>(null)
   const [hintOn, setHintOn] = useState(false)
   const opponent = side === 'white' ? 'Black' : 'White'
@@ -272,7 +273,8 @@ function Session({
       apply(next, lesson)
       return
     }
-    setBoardKey((k) => k + 1)
+    // Let the learner see where the piece landed, then slide it back.
+    window.setTimeout(() => setResetToken((n) => n + 1), 450)
     sfx('wrong')
     if (outcome.kind === 'wrong') {
       setMessage(`That is a fine move, but this line plays ${outcome.expected}.`)
@@ -327,6 +329,7 @@ function Session({
           <div className="board-column">
             <Board
               key={boardKey}
+              resetToken={resetToken}
               fen={lesson.fens[lesson.cursor] ?? lesson.fens[0] ?? ''}
               orientation={side}
               canMove={!lesson.finished}

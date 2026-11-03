@@ -12,6 +12,8 @@ export interface BoardProps {
   onMove: (from: string, to: string) => void
   /** Square to highlight as a hint, if any. */
   hint?: string | null
+  /** Change this number to put the pieces back on `fen`, animating any piece that was moved. */
+  resetToken?: number
 }
 
 function configFor({ fen, orientation, canMove, hint }: BoardProps): Config {
@@ -60,10 +62,10 @@ export default function Board(props: BoardProps) {
     }
   }, [])
 
-  const { fen, orientation, canMove, hint } = props
+  const { fen, orientation, canMove, hint, resetToken } = props
   useEffect(() => {
     apiRef.current?.set(configFor({ fen, orientation, canMove, hint, onMove: () => {} }))
-  }, [fen, orientation, canMove, hint])
+  }, [fen, orientation, canMove, hint, resetToken])
 
   return <div ref={elRef} className="board" role="group" aria-label="Chess board" />
 }
