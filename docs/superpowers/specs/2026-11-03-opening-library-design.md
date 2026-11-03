@@ -55,7 +55,7 @@ export interface OpeningLine {
 
 **Validation and generation** (`scripts/build-openings.ts`):
 - Parse each TSV row. Reject rows where `pgn` is not fully legal according to `chess.js`, and fail the build with the row number.
-- Reject duplicate `(eco, name)` pairs.
+- Reject duplicate `(eco, name, pgn)` triples. The same name may appear with different lines (266 such name pairs exist in the source), so the identifier is the full triple.
 - Write sorted, stable output to `src/data/openings.json`.
 
 **Domain functions** (`src/domain/openings/`):
@@ -67,7 +67,7 @@ export interface OpeningLine {
 ## Testing
 
 - Unit test: the generator rejects an illegal move and reports the row.
-- Unit test: the generator rejects a duplicate entry.
+- Unit test: the generator rejects an exact duplicate entry and accepts two entries that share eco and name but differ in pgn.
 - Unit test: the committed `openings.json` matches a fresh generation (guards against drift).
 - Unit test: `findOpenings` returns matches for name and ECO code, and does not mutate its input.
 

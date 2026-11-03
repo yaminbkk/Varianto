@@ -26,7 +26,7 @@
 1. CRLF line endings or trailing whitespace in the TSV → rows must still parse; trimmed `name` and `pgn`.
 2. A row whose PGN has a trailing result token (`1-0`, `0-1`, `1/2-1/2`, `*`) → must not be rejected as illegal; the result token is stripped before validation.
 3. An empty `pgn` cell or an empty `name` cell → build fails with the row number.
-4. The same `(eco, name)` pair appearing in two files or twice in one file → build fails, naming both rows.
+4. The same `(eco, name, pgn)` triple appearing in two files or twice in one file → build fails, naming both rows. Same eco and name with a different pgn is allowed.
 5. Non-ASCII opening names (e.g. accented letters) → preserved byte-for-byte in the JSON and matched by `findOpenings`.
 
 Each line is pinned by a test in the task that owns it (Tasks 2 and 3).
@@ -95,7 +95,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   // parse.ts
   export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine[]
   // Throws Error whose message starts with `${sourceLabel}:${lineNumber}:` on the first invalid row.
-  // Throws `Duplicate opening ${eco} "${name}" at ${sourceLabel}:${lineNumber}` on duplicates within the text.
+  // Throws `Duplicate opening ${eco} "${name}" at ${sourceLabel}:${lineNumber}` on an exact (eco, name, pgn) duplicate within the text.
   ```
   `parseOpeningsTsv` does not handle cross-file duplicates; Task 3 does that.
 
@@ -108,7 +108,8 @@ In `parse.test.ts`, write these cases (names exact):
 - `rejects an illegal move with the row number` : pgn `1. e5` → throws, message contains `test.tsv:2:`.
 - `rejects an empty pgn cell` (Review Focus 3): throws, message contains `test.tsv:2:`.
 - `rejects an empty name cell` (Review Focus 3): throws, message contains `test.tsv:2:`.
-- `rejects a duplicate eco and name within one text` (Review Focus 4): two identical rows → throws, message contains `Duplicate opening A00 "Amar Opening"`.
+- `rejects an exact duplicate row within one text` (Review Focus 4): two identical rows → throws, message contains `Duplicate opening A00 "Amar Opening"`.
+- `accepts the same eco and name with a different pgn` (Review Focus 4): two rows `A00\tAmar Opening\t1. Nh3` and `A00\tAmar Opening\t1. Nh3 d5` → both returned.
 - `preserves non-ASCII names` (Review Focus 5): name `Gambito del Rey Ñ` → unchanged.
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -118,7 +119,7 @@ Expected: FAIL, module `./parse` not found.
 
 - [ ] **Step 3: Implement `types.ts` and `parse.ts`**
 
-Approach: split on `\n`, strip a trailing `\r`, skip the header line, split each row on `\t` into exactly three cells. Validate with `new Chess().move(san)` for each SAN token after removing move numbers and any final result token (`1-0`, `0-1`, `1/2-1/2`, `*`). Track `eco\u0000name` keys in a `Set` for duplicates. Return a new array.
+Approach: split on `\n`, strip a trailing `\r`, skip the header line, split each row on `\t` into exactly three cells. Validate with `new Chess().move(san)` for each SAN token after removing move numbers and any final result token (`1-0`, `0-1`, `1/2-1/2`, `*`). Track `eco\u0000name\u0000pgn` keys (pgn after result stripping) in a `Set` for duplicates. Return a new array.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -155,14 +156,14 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   ```ts
   // build.ts
   export function buildOpeningLibrary(files: { label: string; text: string }[]): OpeningLine[]
-  // Parses each file, rejects duplicate (eco, name) across all files with a message
+  // Parses each file, rejects duplicate (eco, name, pgn) across all files with a message
   // naming both labels and line numbers, and returns lines sorted by eco then name.
   ```
   `scripts/build-openings.ts` reads `data/openings/{a..e}.tsv`, calls `buildOpeningLibrary`, writes `JSON.stringify(lines, null, 2) + '\n'` to `src/data/openings.json`.
 
 - [ ] **Step 1: Write the failing tests in `build.test.ts`**
 - `merges files and sorts by eco then name`: two inputs in reverse order → sorted output.
-- `rejects a duplicate across files and names both locations` (Review Focus 4): same `(eco, name)` in `a.tsv` and `b.tsv` → throws, message contains both `a.tsv` and `b.tsv`.
+- `rejects a duplicate across files and names both locations` (Review Focus 4): same `(eco, name, pgn)` in `a.tsv` and `b.tsv` → throws, message contains both `a.tsv` and `b.tsv`.
 - `committed openings.json matches a fresh build`: reads `data/openings/*.tsv` via `node:fs`, runs `buildOpeningLibrary`, compares with `JSON.parse(readFileSync('src/data/openings.json'))` using `toEqual`. Failure message tells the reader to run `npm run openings`.
 
 - [ ] **Step 2: Run tests to verify they fail**
