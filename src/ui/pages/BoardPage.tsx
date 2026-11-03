@@ -8,7 +8,8 @@ import { ILLEGAL_MOVE_MESSAGE, friendlyError } from '../messages'
 import MoveList from '../MoveList'
 import { homePath } from '../paths'
 import SkipLink from '../SkipLink'
-import { SAVE_ERROR_MESSAGE, useAppStore } from '../useAppStore'
+import { commentToFlush } from '../commentFlush'
+import { SAVE_ERROR_MESSAGE, useAppStore, useStoreSnapshot } from '../useAppStore'
 
 export default function BoardPage() {
   const { id = '' } = useParams()
@@ -25,6 +26,8 @@ export default function BoardPage() {
   const commentId = useId()
   const mainRef = useRef<HTMLElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const commentRef = useRef<HTMLTextAreaElement>(null)
+  const getState = useStoreSnapshot()
 
   const [loaded, setLoaded] = useState<{ id: string; failed: boolean } | null>(null)
   const [moveMessage, setMoveMessage] = useState<string | null>(null)
@@ -80,6 +83,15 @@ export default function BoardPage() {
   const node = getNode(rep, selectedNodeId)
   const rootSelected = selectedNodeId === rep.rootId
 
+  // Chessground cancels mousedown on the board, so the textarea may not blur.
+  // Save a pending edit before anything changes the selection.
+  function flushComment() {
+    const { current: cur, selectedNodeId: sel } = getState()
+    if (!cur || sel === null || !(sel in cur.nodes)) return
+    const text = commentToFlush(getNode(cur, sel).comment, commentRef.current?.value)
+    if (text !== null) void setComment(text)
+  }
+
   function onMove(from: string, to: string) {
     const san = sanFromSquares(node.fen, from, to)
     if (san === null) {
@@ -88,11 +100,13 @@ export default function BoardPage() {
       return
     }
     setMoveMessage(null)
+    flushComment()
     void playMove(san)
   }
 
   function onSelect(nodeId: string) {
     setMoveMessage(null)
+    flushComment()
     selectNode(nodeId)
   }
 
@@ -157,10 +171,11 @@ export default function BoardPage() {
               <textarea
                 key={selectedNodeId}
                 id={commentId}
+                ref={commentRef}
                 rows={4}
                 defaultValue={node.comment}
-                onBlur={(e) => {
-                  if (e.target.value !== node.comment) void setComment(e.target.value)
+                onBlur={() => {
+                  flushComment()
                 }}
               />
             </section>
