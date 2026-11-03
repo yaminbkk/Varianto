@@ -42,4 +42,9 @@ describe('coursesFrom', () => {
     expect(courses.reduce((n, c) => n + c.lines.length, 0)).toBe(library.length)
     expect(courses.find((c) => c.name === 'Italian Game')?.lines).toHaveLength(187)
   })
+
+  it('has at least one ply in every line of the real library', () => {
+    const courses = coursesFrom(library as OpeningLine[])
+    expect(courses.flatMap((c) => c.lines).every((l) => l.plies >= 1)).toBe(true)
+  })
 })

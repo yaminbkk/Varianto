@@ -129,9 +129,11 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
       <Shell>
         <h1>{course.name}</h1>
         <p role="status">
-          {skipped.size > 0
-            ? 'No more new lines at this depth. Lines you finished with Solve are not counted yet.'
-            : 'Course complete at this depth.'}
+          {courseProgress(course, depth, side, learned).total === 0
+            ? 'This course has no lines for this side at this depth.'
+            : skipped.size > 0
+              ? 'No more new lines at this depth. Lines you finished with Solve are not counted yet.'
+              : 'Course complete at this depth.'}
         </p>
         <Link className="btn btn-primary" to={coursePath(course.id)}>
           Back to course
