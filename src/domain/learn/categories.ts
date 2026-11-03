@@ -4,8 +4,17 @@ import { naturalSide } from './thumbnail'
 
 export type Category = 'white' | 'black' | 'e4' | 'd4' | 'others'
 
-/** The filters of the catalog, in display order. */
-export const CATEGORIES: readonly Category[] = ['white', 'black', 'e4', 'd4', 'others']
+export type SideCategory = 'white' | 'black'
+export type MoveCategory = 'e4' | 'd4' | 'others'
+
+/** First level of the catalog filters: the side that plays the opening. */
+export const SIDE_CATEGORIES: readonly SideCategory[] = ['white', 'black']
+
+/** Second level: the first move of the opening. */
+export const MOVE_CATEGORIES: readonly MoveCategory[] = ['e4', 'd4', 'others']
+
+/** Every filter, in display order. */
+export const CATEGORIES: readonly Category[] = [...SIDE_CATEGORIES, ...MOVE_CATEGORIES]
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   white: 'White',
@@ -38,4 +47,15 @@ export function inCategory(course: Course, category: Category): boolean {
     case 'others':
       return !['e4', 'd4'].includes(firstMove(course))
   }
+}
+
+/** The courses that are on the chosen side and start with the chosen move; `null` means no limit. */
+export function filterCourses(
+  courses: readonly Course[],
+  side: SideCategory | null,
+  move: MoveCategory | null,
+): Course[] {
+  return courses.filter(
+    (c) => (side === null || inCategory(c, side)) && (move === null || inCategory(c, move)),
+  )
 }
