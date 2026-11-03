@@ -48,8 +48,19 @@ export default function LearnCatalogPage() {
         <p>
           <Link to={homePath}>Back to your repertoires</Link>
         </p>
-        <h1>Learn openings</h1>
-        <p className="hint">Pick an opening and play its moves. Mistakes cost nothing.</p>
+        <header className="hero">
+          <h1>Learn openings</h1>
+          <p className="hint">Pick an opening and play its moves. Mistakes cost nothing.</p>
+          {courses && (
+            <ul className="stats">
+              <li className="stat">{courses.length} openings</li>
+              <li className="stat">
+                {courses.reduce((n, c) => n + c.lines.length, 0).toLocaleString('en-US')} lines
+              </li>
+              <li className="stat">{[...counts.values()].reduce((n, c) => n + c, 0)} learned</li>
+            </ul>
+          )}
+        </header>
         <div className="field">
           <label htmlFor={searchId}>Search by name, variation, or ECO code</label>
           <input
@@ -100,6 +111,13 @@ export default function LearnCatalogPage() {
                       {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'}
                       {done !== null && ` · ${done} learned`}
                     </span>
+                    {done !== null && (
+                      <span className="meter" aria-hidden="true">
+                        <span
+                          style={{ width: `${Math.round((done / course.lines.length) * 100)}%` }}
+                        />
+                      </span>
+                    )}
                   </Link>
                 </li>
               )

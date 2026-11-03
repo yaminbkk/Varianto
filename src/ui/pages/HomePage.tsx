@@ -87,7 +87,7 @@ export default function HomePage() {
     <div className="actions">
       <button
         type="button"
-        className="btn btn-primary"
+        className="btn"
         aria-expanded={panel === 'opening'}
         onClick={() => togglePanel('opening')}
       >
@@ -101,12 +101,6 @@ export default function HomePage() {
       >
         Import PGN
       </button>
-      <Link className="btn btn-primary" to={learnPath}>
-        Learn openings
-      </Link>
-      <Link className="btn" to={openingsPath}>
-        Browse openings
-      </Link>
     </div>
   )
 
@@ -114,8 +108,21 @@ export default function HomePage() {
     <>
       <SkipLink targetRef={mainRef} />
       <main id="main" ref={mainRef} tabIndex={-1} className="app">
-        <h1>Varianto</h1>
-        <p className="hint">A free, local-first chess opening trainer.</p>
+        <header className="hero">
+          <h1>Varianto</h1>
+          <p className="hint">
+            A free, local-first chess opening trainer. Learn every opening and variation, and build
+            your own repertoire.
+          </p>
+          <div className="actions">
+            <Link className="btn btn-primary" to={learnPath}>
+              Learn openings
+            </Link>
+            <Link className="btn" to={openingsPath}>
+              Browse openings
+            </Link>
+          </div>
+        </header>
 
         <div className="alerts" role="alert">
           {error && error !== ownedMessage && <p className="alert">{error}</p>}
