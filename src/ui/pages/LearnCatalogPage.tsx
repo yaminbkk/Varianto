@@ -1,10 +1,13 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  CATEGORIES,
   CATEGORY_LABELS,
+  MOVE_CATEGORIES,
+  SIDE_CATEGORIES,
+  filterCourses,
   inCategory,
-  type Category,
+  type MoveCategory,
+  type SideCategory,
 } from '../../domain/learn/categories'
 import { courseThumbnail } from '../../domain/learn/thumbnail'
 import { searchCourses } from '../../domain/learn/searchCourses'
@@ -25,7 +28,8 @@ export default function LearnCatalogPage() {
   const statusId = useId()
   const mainRef = useRef<HTMLElement>(null)
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState<Category | null>(null)
+  const [side, setSide] = useState<SideCategory | null>(null)
+  const [move, setMove] = useState<MoveCategory | null>(null)
   const [counts, setCounts] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
@@ -46,16 +50,27 @@ export default function LearnCatalogPage() {
     () => (state.status === 'ready' ? visibleCourses(state.courses, hiddenCourses) : null),
     [state],
   )
-  const shown = useMemo(() => {
-    const found = courses ? searchCourses(courses, query) : []
-    return category ? found.filter((c) => inCategory(c, category)) : found
-  }, [courses, query, category])
-  const categoryCounts = useMemo(
+  const shown = useMemo(
+    () => filterCourses(courses ? searchCourses(courses, query) : [], side, move),
+    [courses, query, side, move],
+  )
+  // Side counts cover everything; first-move counts cover the chosen side.
+  const sideCounts = useMemo(
     () =>
       Object.fromEntries(
-        CATEGORIES.map((c) => [c, courses ? courses.filter((x) => inCategory(x, c)).length : 0]),
-      ) as Record<Category, number>,
+        SIDE_CATEGORIES.map((c) => [
+          c,
+          courses ? courses.filter((x) => inCategory(x, c)).length : 0,
+        ]),
+      ) as Record<SideCategory, number>,
     [courses],
+  )
+  const moveCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        MOVE_CATEGORIES.map((c) => [c, courses ? filterCourses(courses, side, c).length : 0]),
+      ) as Record<MoveCategory, number>,
+    [courses, side],
   )
 
   return (
@@ -87,25 +102,47 @@ export default function LearnCatalogPage() {
             disabled={courses === null}
           />
         </div>
-        <div className="chips" role="group" aria-label="Filter openings">
+        <div className="chips" role="group" aria-label="Filter by side">
           <button
             type="button"
             className="chip"
-            aria-pressed={category === null}
-            onClick={() => setCategory(null)}
+            aria-pressed={side === null}
+            onClick={() => setSide(null)}
           >
             All
           </button>
-          {CATEGORIES.map((c) => (
+          {SIDE_CATEGORIES.map((c) => (
             <button
               key={c}
               type="button"
               className="chip"
-              aria-pressed={category === c}
-              onClick={() => setCategory(category === c ? null : c)}
+              aria-pressed={side === c}
+              onClick={() => setSide(side === c ? null : c)}
             >
               {CATEGORY_LABELS[c]}
-              {courses && <span className="chip-count">{categoryCounts[c]}</span>}
+              {courses && <span className="chip-count">{sideCounts[c]}</span>}
+            </button>
+          ))}
+        </div>
+        <div className="chips" role="group" aria-label="Filter by first move">
+          <button
+            type="button"
+            className="chip"
+            aria-pressed={move === null}
+            onClick={() => setMove(null)}
+          >
+            Any first move
+          </button>
+          {MOVE_CATEGORIES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="chip"
+              aria-pressed={move === c}
+              onClick={() => setMove(move === c ? null : c)}
+            >
+              {CATEGORY_LABELS[c]}
+              {courses && <span className="chip-count">{moveCounts[c]}</span>}
             </button>
           ))}
         </div>
