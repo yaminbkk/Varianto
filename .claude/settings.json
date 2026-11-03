@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "ui-ux-pro-max@ui-ux-pro-max-skill": false,
+    "document-skills@anthropic-agent-skills": false,
+    "example-skills@anthropic-agent-skills": false
+  }
+}
