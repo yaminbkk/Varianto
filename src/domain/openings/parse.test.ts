@@ -61,6 +61,15 @@ describe('parseOpeningsTsv', () => {
     expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:1:/)
   })
 
+  it('rejects a header with a missing column', () => {
+    const text = 'eco\tname\nA00\tAmar Opening\n'
+    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:1:/)
+  })
+
+  it('rejects empty input because it has no header', () => {
+    expect(() => parseOpeningsTsv('', 'test.tsv')).toThrow(/test\.tsv:1:/)
+  })
+
   it('treats the same moves written with different spacing as duplicates', () => {
     const text = `${HEADER}\nA00\tAmar Opening\t1.Nh3\nA00\tAmar Opening\t1. Nh3\n`
     expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/Duplicate opening A00/)
