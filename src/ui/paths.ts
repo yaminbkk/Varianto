@@ -16,6 +16,14 @@ export function coursePath(id: string): string {
   return `${learnPath}/${encodeURIComponent(id)}`
 }
 
+export function practicePath(id: string): string {
+  return `${coursePath(id)}/practice`
+}
+
+export function drillPath(id: string): string {
+  return `${coursePath(id)}/drill`
+}
+
 export function lessonPath(id: string, depth: string, side: string): string {
   return `${coursePath(id)}/play?depth=${encodeURIComponent(depth)}&side=${encodeURIComponent(side)}`
 }
