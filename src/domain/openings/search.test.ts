@@ -22,6 +22,15 @@ describe('findOpenings', () => {
     expect(findOpenings(lines, '   ')).toEqual(lines)
   })
 
+  it('returns a new array rather than the input', () => {
+    expect(findOpenings(lines, '')).not.toBe(lines)
+    expect(findOpenings(lines, 'a00')).not.toBe(lines)
+  })
+
+  it('returns an empty array when nothing matches', () => {
+    expect(findOpenings(lines, 'zzz')).toEqual([])
+  })
+
   it('matches accented names without normalizing them', () => {
     expect(findOpenings(lines, 'ñ')).toEqual([lines[2]])
   })

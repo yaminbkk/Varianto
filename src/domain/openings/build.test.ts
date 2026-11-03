@@ -28,6 +28,17 @@ describe('buildOpeningLibrary', () => {
     expect(() => buildOpeningLibrary(files)).toThrow(/a\.tsv:3.*b\.tsv:4|b\.tsv:4.*a\.tsv:3/)
   })
 
+  it('sorts by pgn when eco and name are equal', () => {
+    const files = [
+      { label: 'a.tsv', text: `${HEADER}\nA00\tSame\t1. Nh3 d5\n` },
+      { label: 'b.tsv', text: `${HEADER}\nA00\tSame\t1. Nh3\n` },
+    ]
+    expect(buildOpeningLibrary(files)).toEqual([
+      { eco: 'A00', name: 'Same', pgn: '1. Nh3' },
+      { eco: 'A00', name: 'Same', pgn: '1. Nh3 d5' },
+    ])
+  })
+
   it('committed openings.json matches a fresh build', () => {
     const dir = join(process.cwd(), 'data', 'openings')
     const files = ['a', 'b', 'c', 'd', 'e'].map((letter) => ({
