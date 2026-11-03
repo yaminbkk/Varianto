@@ -10,7 +10,7 @@ import {
   type SideCategory,
 } from '../../domain/learn/categories'
 import { courseThumbnail } from '../../domain/learn/thumbnail'
-import { searchCourses } from '../../domain/learn/searchCourses'
+import { searchCourses, searchCoursesByMoves } from '../../domain/learn/searchCourses'
 import { visibleCourses } from '../../domain/learn/visibleCourses'
 import hiddenCourses from '../../data/hidden-courses.json'
 import { ecoFamily } from '../../domain/openings/ecoFamily'
@@ -28,6 +28,7 @@ export default function LearnCatalogPage() {
   const statusId = useId()
   const mainRef = useRef<HTMLElement>(null)
   const [query, setQuery] = useState('')
+  const [byMoves, setByMoves] = useState(false)
   const [side, setSide] = useState<SideCategory | null>(null)
   const [move, setMove] = useState<MoveCategory | null>(null)
   const [counts, setCounts] = useState<Map<string, number>>(new Map())
@@ -51,8 +52,13 @@ export default function LearnCatalogPage() {
     [state],
   )
   const shown = useMemo(
-    () => filterCourses(courses ? searchCourses(courses, query) : [], side, move),
-    [courses, query, side, move],
+    () =>
+      filterCourses(
+        courses ? (byMoves ? searchCoursesByMoves(courses, query) : searchCourses(courses, query)) : [],
+        side,
+        move,
+      ),
+    [courses, query, byMoves, side, move],
   )
   // Side counts cover everything; first-move counts cover the chosen side.
   const sideCounts = useMemo(
@@ -91,7 +97,11 @@ export default function LearnCatalogPage() {
           )}
         </header>
         <div className="field">
-          <label htmlFor={searchId}>Search by name, variation, or ECO code</label>
+          <label htmlFor={searchId}>
+            {byMoves
+              ? 'Search by moves, for example 1.e4 e5 2.Nf3'
+              : 'Search by name, variation, or ECO code'}
+          </label>
           <input
             id={searchId}
             type="search"
@@ -101,6 +111,14 @@ export default function LearnCatalogPage() {
             autoComplete="off"
             disabled={courses === null}
           />
+          <label>
+            <input
+              type="checkbox"
+              checked={byMoves}
+              onChange={(e) => setByMoves(e.target.checked)}
+            />{' '}
+            Search by moves
+          </label>
         </div>
         <div className="chips" role="group" aria-label="Filter by side">
           <button
