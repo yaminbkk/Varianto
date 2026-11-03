@@ -4,7 +4,7 @@ import type { Color } from '../../domain/repertoire/tree'
 import ActionError from '../ActionError'
 import ImportPgn from '../ImportPgn'
 import OpeningPicker from '../OpeningPicker'
-import { openingsPath, repertoirePath } from '../paths'
+import { learnPath, openingsPath, repertoirePath } from '../paths'
 import SideField from '../SideField'
 import SkipLink from '../SkipLink'
 import { SAVE_ERROR_MESSAGE, failureMessage, useAppStore, useStoreSnapshot } from '../useAppStore'
@@ -101,6 +101,9 @@ export default function HomePage() {
       >
         Import PGN
       </button>
+      <Link className="btn btn-primary" to={learnPath}>
+        Learn openings
+      </Link>
       <Link className="btn" to={openingsPath}>
         Browse openings
       </Link>

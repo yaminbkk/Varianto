@@ -5,7 +5,9 @@ import { openingPositions, START_FEN } from '../../domain/openings/positions'
 import type { Color } from '../../domain/repertoire/tree'
 import ActionError from '../ActionError'
 import Board from '../Board'
-import { openingsPath, repertoirePath } from '../paths'
+import { courseName } from '../../domain/learn/courses'
+import { slug } from '../../domain/openings/key'
+import { coursePath, openingsPath, repertoirePath } from '../paths'
 import SideField from '../SideField'
 import SkipLink from '../SkipLink'
 import { stepBy } from '../stepNav'
@@ -164,6 +166,9 @@ function OpeningView({ openingKey: key }: { openingKey: string }) {
               <h2 id="start-heading">Practice this opening</h2>
               <SideField name="opening-page-side" value={color} onChange={setColor} />
               <ActionError message={message} />
+              <Link className="btn" to={coursePath(slug(courseName(line.name)))}>
+                Learn this opening
+              </Link>
               <button
                 type="button"
                 className="btn btn-primary"
