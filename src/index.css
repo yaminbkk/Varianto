@@ -417,3 +417,7 @@ div.alert p {
 .field textarea {
   resize: vertical;
 }
+
+a.result {
+  text-decoration: none;
+}
