@@ -1,6 +1,6 @@
 # Opening Library: Design
 
-Status: draft, pending approval.
+Status: approved and implemented.
 Date: 2026-11-03
 
 ## Intent
@@ -55,12 +55,12 @@ export interface OpeningLine {
 
 **Validation and generation** (`scripts/build-openings.ts`):
 - Parse each TSV row. Reject rows where `pgn` is not fully legal according to `chess.js`, and fail the build with the row number.
-- Reject duplicate `(eco, name, pgn)` triples. The same name may appear with different lines (266 such name pairs exist in the source), so the identifier is the full triple.
+- Reject duplicate `(eco, name, pgn)` triples. The same name may appear with different lines (266 such name pairs exist in the source), so the identifier is the full triple. The `pgn` part of the key is compared ignoring move-number spacing (`1.Nh3` and `1. Nh3` are the same line).
 - Write sorted, stable output to `src/data/openings.json`.
 
 **Domain functions** (`src/domain/openings/`):
 - `findOpenings(lines, query)`: case-insensitive search on `name` and `eco`. Pure and returns a new array.
-- `openingToRepertoireNodes(...)`: uses the existing `importPgn` to add a line to a repertoire. No new tree logic.
+- `addOpeningToRepertoire(rep, line, newId)`: uses the existing `importPgn` to add a line to a repertoire. No new tree logic.
 
 **Attribution:** add a `NOTICE` entry (or a section in the README) that names the source, the commit SHA, and the CC0 license.
 
@@ -76,6 +76,7 @@ export interface OpeningLine {
 - Exact file layout under `data/` and `src/data/`.
 - Whether `openings.json` is committed or generated in `prebuild`. Default: committed, plus a test that checks it is current.
 - Bundle size check. Default: keep the JSON under about 500 KB; if it is larger, load it lazily.
+  - Result: the generated `src/data/openings.json` is about 592 KB, over the 500 KB default. The UI task that imports it must load it lazily (dynamic `import()`), so it stays out of the main bundle.
 
 ## Open question
 
