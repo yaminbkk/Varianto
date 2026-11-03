@@ -37,10 +37,12 @@
 ### Task 1: Rename and recolor a repertoire
 
 **Files:**
+
 - Create: `src/domain/repertoire/edit.ts`
 - Test: `src/domain/repertoire/edit.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Repertoire`, `Color` from `src/domain/repertoire/tree.ts`
 - Produces:
   - `renameRepertoire(rep: Repertoire, name: string): Repertoire` (trims; blank becomes `'Untitled repertoire'`)
@@ -78,10 +80,12 @@ git commit -m "Implement rename and recolor for repertoire" -m "Co-Authored-By: 
 ### Task 2: Create a repertoire from an opening line
 
 **Files:**
+
 - Create: `src/domain/openings/fromOpening.ts`
 - Test: `src/domain/openings/fromOpening.test.ts`
 
 **Interfaces:**
+
 - Consumes: `createRepertoire`, `IdFactory`, `Color` (tree.ts); `addOpeningToRepertoire` (`addToRepertoire.ts`); `OpeningLine` (`types.ts`)
 - Produces: `repertoireFromOpening(line: OpeningLine, color: Color, newId: IdFactory): Repertoire`. The name is `line.name`. The moves are imported with `addOpeningToRepertoire`. Invalid movetext throws (propagated from `importPgn`).
 
@@ -112,10 +116,12 @@ Use the same two-commit pattern as Task 1, with the subjects "Add failing test f
 ### Task 3: Outline rows for the move list
 
 **Files:**
+
 - Create: `src/domain/repertoire/outline.ts`
 - Test: `src/domain/repertoire/outline.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Repertoire`, `getNode`, `getChildren` (tree.ts)
 - Produces:
   - `interface OutlineRow { nodeId: string; depth: number; label: string }`
@@ -150,10 +156,12 @@ Two commits, subjects "Add failing test for repertoire outline rows" and "Implem
 ### Task 4: Convert a square move to SAN
 
 **Files:**
+
 - Create: `src/domain/repertoire/squares.ts`
 - Test: `src/domain/repertoire/squares.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Chess` from `chess.js`
 - Produces: `sanFromSquares(fen: string, from: string, to: string): string | null`. Returns the SAN of the legal move, or `null` if the move is illegal. Promotion is always to a queen (my call: the UI does not offer a promotion choice in this phase).
 
@@ -184,10 +192,12 @@ Two commits, subjects "Add failing test for square to SAN conversion" and "Imple
 ### Task 5: File name for PGN export
 
 **Files:**
+
 - Create: `src/domain/pgn/filename.ts`
 - Test: `src/domain/pgn/filename.test.ts`
 
 **Interfaces:**
+
 - Produces: `pgnFileName(name: string): string`. Lowercases, replaces each run of characters other than `a-z0-9` with `-`, trims leading and trailing `-`, appends `.pgn`. A name that becomes empty gives `repertoire.pgn`.
 
 - [ ] **Step 1: Write the failing test**
@@ -215,10 +225,12 @@ Two commits, subjects "Add failing test for PGN file name" and "Implement PGN fi
 ### Task 6: Route paths
 
 **Files:**
+
 - Create: `src/ui/paths.ts`
 - Test: `src/ui/paths.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `homePath: '/'`
   - `repertoirePath(id: string): string` returns `/r/<encodeURIComponent(id)>`
@@ -248,14 +260,17 @@ Two commits, subjects "Add failing test for route paths" and "Implement route pa
 ### Task 7: App store
 
 **Files:**
+
 - Create: `src/ui/store/appStore.ts`
 - Test: `src/ui/store/appStore.test.ts`
 
 **Interfaces:**
+
 - Consumes: all domain functions from Tasks 1–5 and `addMove`, `deleteNode`, `setComment`, `createRepertoire`, `importPgn` (tree.ts, pgn.ts); `RepertoireStore`, `RepertoireSummary` (`src/storage/store.ts`); `IdFactory`.
 - Produces: `createAppStore(deps: { store: RepertoireStore; newId: IdFactory }): StoreApi<AppState>` (Zustand vanilla `createStore`, so tests need no React).
 
 `AppState` fields:
+
 - `summaries: RepertoireSummary[]`
 - `current: Repertoire | null`
 - `selectedNodeId: string | null`
@@ -263,6 +278,7 @@ Two commits, subjects "Add failing test for route paths" and "Implement route pa
 - `saveError: boolean` (true after a failed write; cleared on the next successful write)
 
 Actions:
+
 - `loadList(): Promise<void>`
 - `open(id: string): Promise<void>`: loads the repertoire, sets `selectedNodeId` to `rootId`. Unknown id sets `error`.
 - `create(name: string, color: Color): Promise<string>` returns the new id.
@@ -280,6 +296,7 @@ Every write goes through `store.save` (or `store.remove`). A rejected write sets
 - [ ] **Step 1: Write the failing tests**
 
 Create an in-memory `RepertoireStore` inside the test file with a `Map`. Cover at least:
+
 - `create` then `loadList` shows the new summary; `create` with `'  '` as name stores `Untitled repertoire`.
 - `playMove('e4')` from the root updates `current`, sets `selectedNodeId` to the new node, and calls `save` once.
 - `playMove('Ke5')` from the start (illegal) leaves `current` and `selectedNodeId` unchanged and sets `error`. Also `save` is not called.
@@ -314,12 +331,14 @@ Two commits, subjects "Add failing tests for app store" and "Implement app store
 ### Task 8: Router and app shell
 
 **Files:**
+
 - Modify: `src/App.tsx` (replace the placeholder)
 - Modify: `src/main.tsx` (create the store and router)
 - Create: `src/ui/router.tsx`
 - Create: `src/ui/pages/NotFoundPage.tsx`
 
 **Interfaces:**
+
 - Consumes: `createAppStore` (Task 7), `homePath`, `repertoirePath` (Task 6), `VariantoDb` and `DexieRepertoireStore` (`src/storage/db.ts`, `src/storage/dexieStore.ts`)
 - Produces: `createAppRouter(store: StoreApi<AppState>): Router`, from React Router `createHashRouter`. Routes: `homePath` renders the home page (Task 9) and `repertoirePath(':id')` renders the board page (Task 10). Anything else renders `NotFoundPage`.
 
@@ -346,16 +365,19 @@ Commit subject: "Add hash router and app shell". Use the `Co-Authored-By` footer
 ### Task 9: Home page, opening picker, and PGN import
 
 **Files:**
+
 - Create: `src/ui/pages/HomePage.tsx`
 - Create: `src/ui/OpeningPicker.tsx`
 - Create: `src/ui/ImportPgn.tsx`
 - Modify: `src/index.css` (form and list styles, focus rings, 24 px minimum targets, skip link)
 
 **Interfaces:**
+
 - Consumes: `createAppStore` actions (Task 7), `findOpenings` (`src/domain/openings/search.ts`), `OpeningLine` (`types.ts`), `repertoirePath` (Task 6)
 - Produces: `HomePage` (no props, reads the store). `OpeningPicker` loads the library with `await import('../data/openings.json')` on first open, so the JSON is a separate chunk.
 
 Behavior:
+
 - Home lists repertoires as links to `repertoirePath(id)`. Shows "New repertoire" with a name field and side choice (White or Black).
 - "Start from an opening" opens the picker: a search field (`findOpenings`), results as buttons, and a side choice. Picking a line calls `fromOpening` and navigates to the board.
 - "Import PGN" accepts pasted text (`textarea`) and a file input (`File.text()`). It needs a name and side, then calls `importPgn`.
@@ -389,18 +411,21 @@ Two commits: "Add home page with new repertoire, opening picker, and PGN import"
 ### Task 10: Board page, move list, comment, and delete
 
 **Files:**
+
 - Create: `src/ui/pages/BoardPage.tsx`
 - Create: `src/ui/Board.tsx` (chessground wrapper)
 - Create: `src/ui/MoveList.tsx`
 - Modify: `src/index.css` (board and list layout, selected-move accent)
 
 **Interfaces:**
+
 - Consumes: store (`current`, `selectedNodeId`, `open`, `playMove`, `selectNode`, `deleteSelected`, `setComment`, `error`, `saveError`), `outlineRows` (Task 3), `sanFromSquares` (Task 4), `getNode` (tree.ts), `chessground`.
 - Produces:
   - `Board` props: `{ fen: string; orientation: 'white' | 'black'; canMove: boolean; onMove: (from: string, to: string) => void }`
   - `MoveList` props: `{ rows: OutlineRow[]; selectedId: string | null; onSelect: (nodeId: string) => void }`
 
 Behavior:
+
 - Board mounts chessground once in a `useRef`/`useEffect`, and calls `set` when `fen` changes. `movable` allows the user's color only, when it is their turn. `onMove` uses `sanFromSquares` and then `playMove(san)`. Illegal results are reflected by re-setting the board to the store's `fen` (the board snaps back).
 - Move list is a list of buttons. Up and Down arrow keys move the selection. Enter selects. The selected row has `aria-current="true"`.
 - "Delete move" is disabled when the root is selected. "Comment" is a textarea that calls `setComment` on blur.
@@ -428,10 +453,12 @@ Commit subject: "Add board page with move list, comments, and delete". If the wo
 ### Task 11: Export PGN
 
 **Files:**
+
 - Create: `src/ui/ExportButton.tsx`
 - Modify: `src/ui/pages/BoardPage.tsx` (render the button)
 
 **Interfaces:**
+
 - Consumes: `exportPgn` (`src/domain/pgn/pgn.ts`), `pgnFileName` (Task 5), `current` from the store.
 - Produces: `ExportButton` (props: `{ rep: Repertoire }`). Builds a `Blob` with type `application/x-chess-pgn`, creates an object URL, clicks a temporary anchor with the file name, and revokes the URL.
 
