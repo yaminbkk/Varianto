@@ -27,7 +27,9 @@ describe('explainMove', () => {
   })
 
   it('explains a developing bishop', () => {
-    expect(explainMove(after('e4', 'e5', 'Nf3', 'Nc6'), 'Bc4')).toBe('Develops the bishop to c4.')
+    expect(explainMove(after('e4', 'e5', 'Nf3', 'Nc6'), 'Bc4')).toBe(
+      'Develops the bishop to c4, where it eyes the centre square d5.',
+    )
   })
 
   it('explains a capture', () => {
