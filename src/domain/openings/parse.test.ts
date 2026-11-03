@@ -30,6 +30,11 @@ describe('parseOpeningsTsv', () => {
     expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:2:/)
   })
 
+  it('rejects permissive move notation such as e2e4', () => {
+    const text = `${HEADER}\nC20\tKing's Pawn Game\t1. e2e4\n`
+    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:2:/)
+  })
+
   it('rejects an empty pgn cell', () => {
     const text = `${HEADER}\nA00\tAmar Opening\t\n`
     expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:2:/)
