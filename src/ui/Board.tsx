@@ -10,15 +10,18 @@ export interface BoardProps {
   orientation: 'white' | 'black'
   canMove: boolean
   onMove: (from: string, to: string) => void
+  /** Square to highlight as a hint, if any. */
+  hint?: string | null
 }
 
-function configFor({ fen, orientation, canMove }: BoardProps): Config {
+function configFor({ fen, orientation, canMove, hint }: BoardProps): Config {
   const turnColor = sideToMove(fen)
   return {
     fen,
     orientation,
     turnColor,
     viewOnly: !canMove,
+    drawable: { autoShapes: hint ? [{ orig: hint as Key, brush: 'green' }] : [] },
     movable: {
       free: false,
       color: canMove ? turnColor : undefined,
@@ -57,10 +60,10 @@ export default function Board(props: BoardProps) {
     }
   }, [])
 
-  const { fen, orientation, canMove } = props
+  const { fen, orientation, canMove, hint } = props
   useEffect(() => {
-    apiRef.current?.set(configFor({ fen, orientation, canMove, onMove: () => {} }))
-  }, [fen, orientation, canMove])
+    apiRef.current?.set(configFor({ fen, orientation, canMove, hint, onMove: () => {} }))
+  }, [fen, orientation, canMove, hint])
 
   return <div ref={elRef} className="board" role="group" aria-label="Chess board" />
 }
