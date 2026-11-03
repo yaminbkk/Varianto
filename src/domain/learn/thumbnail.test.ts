@@ -37,11 +37,19 @@ describe('courseThumbnail', () => {
     )
   })
 
-  it('looks from the default side of the course', () => {
+  it('looks from the side that owns the shown line', () => {
     const white = courseOf('A', { name: 'A', pgn: '1. e4', plies: 1 })
     const black = courseOf('B', { name: 'B', pgn: '1. e4 c5', plies: 2 })
     expect(courseThumbnail(white).orientation).toBe('white')
     expect(courseThumbnail(black).orientation).toBe('black')
+    // The line carrying the course name decides, not how many lines each side has.
+    const defence = courseOf(
+      'D',
+      { name: 'D', pgn: '1. e4 c5', plies: 2 },
+      { name: 'D: A', pgn: '1. e4 c5 2. Nf3', plies: 3 },
+      { name: 'D: B', pgn: '1. e4 c5 2. c3', plies: 3 },
+    )
+    expect(courseThumbnail(defence).orientation).toBe('black')
   })
 
   it('has a position for every course of the real library', () => {

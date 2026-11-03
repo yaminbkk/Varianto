@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { courseThumbnail } from '../../domain/learn/thumbnail'
 import { ecoFamily } from '../../domain/openings/ecoFamily'
+import MiniBoard from '../MiniBoard'
 import { homePath, coursePath } from '../paths'
 import SkipLink from '../SkipLink'
 import { useCourses } from '../useCourses'
@@ -80,23 +82,26 @@ export default function LearnCatalogPage() {
           </p>
         )}
         {shown.length > 0 && (
-          <ul className="results">
+          <ul className="course-grid">
             {shown.map((course) => {
               const done = counts.get(course.id) ?? 0
+              const thumb = courseThumbnail(course)
               return (
                 <li key={course.id}>
-                  <Link className="result" to={coursePath(course.id)}>
-                    <span className="result-name">
+                  <Link className="course-card" to={coursePath(course.id)}>
+                    <MiniBoard fen={thumb.fen} orientation={thumb.orientation} />
+                    <span className="course-name">{course.name}</span>
+                    <span className="course-meta">
                       <span className="eco">
                         {course.ecoFrom === course.ecoTo
                           ? course.ecoFrom
                           : `${course.ecoFrom}-${course.ecoTo}`}
                       </span>{' '}
-                      {course.name}
+                      · {ecoFamily(course.ecoFrom)}
                     </span>
-                    <span className="result-moves">
-                      {ecoFamily(course.ecoFrom)} · {course.lines.length}{' '}
-                      {course.lines.length === 1 ? 'line' : 'lines'} · {done} learned
+                    <span className="course-meta">
+                      {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'} · {done}{' '}
+                      learned
                     </span>
                   </Link>
                 </li>
