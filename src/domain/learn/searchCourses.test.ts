@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import library from '../../data/openings.json'
 import type { OpeningLine } from '../openings/types'
 import { coursesFrom } from './courses'
-import { searchCourses } from './searchCourses'
+import { searchCourses, searchCoursesByMoves } from './searchCourses'
 
 const families = coursesFrom(library as OpeningLine[])
 const names = (query: string) => searchCourses(families, query).map((c) => c.name)
@@ -44,5 +44,30 @@ describe('searchCourses', () => {
     const before = families.length
     searchCourses(families, 'najdorf')
     expect(families).toHaveLength(before)
+  })
+})
+
+describe('searchCoursesByMoves', () => {
+  const byMoves = (moves: string) => searchCoursesByMoves(families, moves).map((c) => c.name)
+
+  it('returns every family for an empty query', () => {
+    expect(searchCoursesByMoves(families, '  ')).toEqual(families)
+  })
+
+  it('finds a course whose line starts with the moves, numbered or not', () => {
+    expect(byMoves('1.e4 e5 2.Nf3')).toContain('The Italian Game')
+    expect(byMoves('e4 e5 Nf3')).toContain('The Italian Game')
+  })
+
+  it('does not match moves that appear only later in a line', () => {
+    expect(byMoves('1.Bc4')).not.toContain('The Italian Game')
+  })
+
+  it('returns nothing when the first move is by the wrong colour', () => {
+    expect(byMoves('e5')).toEqual([])
+  })
+
+  it('returns nothing for a sequence longer than every line', () => {
+    expect(byMoves('e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 d5 e5 e4 zz')).toEqual([])
   })
 })
