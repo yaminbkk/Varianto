@@ -39,7 +39,17 @@ describe('addOpeningToRepertoire', () => {
     const first = addOpeningToRepertoire(rep, parisGambit, sequentialIds('i')).repertoire
     const second = addOpeningToRepertoire(first, parisGambit, sequentialIds('j')).repertoire
 
+    expect(Object.keys(first.nodes).length).toBe(6) // root plus 5 moves
     expect(Object.keys(second.nodes).length).toBe(Object.keys(first.nodes).length)
+  })
+
+  it('throws when the repertoire does not start from the standard position', () => {
+    const customFen = '4k3/8/8/8/8/8/4P3/4K3 w - - 0 1'
+    const rep = createRepertoire('Endgame', 'white', sequentialIds(), customFen)
+
+    expect(() => addOpeningToRepertoire(rep, parisGambit, sequentialIds('i'))).toThrow(
+      /different position/,
+    )
   })
 
   it('does not mutate the input repertoire', () => {
