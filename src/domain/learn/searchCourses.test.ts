@@ -55,12 +55,12 @@ describe('searchCoursesByMoves', () => {
   })
 
   it('finds a course whose line starts with the moves, numbered or not', () => {
-    expect(byMoves('1.e4 e5 2.Nf3')).toContain('The Italian Game')
-    expect(byMoves('e4 e5 Nf3')).toContain('The Italian Game')
+    expect(byMoves('1.e4 e5 2.Nf3')).toContain('Italian Game')
+    expect(byMoves('e4 e5 Nf3')).toContain('Italian Game')
   })
 
   it('does not match moves that appear only later in a line', () => {
-    expect(byMoves('1.Bc4')).not.toContain('The Italian Game')
+    expect(byMoves('1.Bc4')).not.toContain('Italian Game')
   })
 
   it('returns nothing when the first move is by the wrong colour', () => {

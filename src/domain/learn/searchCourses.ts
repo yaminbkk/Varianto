@@ -1,3 +1,4 @@
+import { sanSequence } from '../openings/parse'
 import type { Course } from './courses'
 import { variantCourses } from './variants'
 
@@ -28,4 +29,22 @@ export function searchCourses(families: readonly Course[], query: string): Cours
       }
   }
   return found
+}
+
+/**
+ * Courses having a line that starts with the given moves, for example "1.e4 e5 2.Nf3" or "e4 e5 Nf3".
+ * Move numbers are ignored. Variation courses are not searched by moves in this version.
+ */
+export function searchCoursesByMoves(families: readonly Course[], moves: string): Course[] {
+  const tokens = sanSequence(moves)
+    .split(' ')
+    .filter((t) => t !== '')
+  if (tokens.length === 0) return [...families]
+
+  return families.filter((family) =>
+    family.lines.some((courseLine) => {
+      const lineMoves = sanSequence(courseLine.line.pgn).split(' ')
+      return tokens.length <= lineMoves.length && tokens.every((t, i) => lineMoves[i] === t)
+    }),
+  )
 }
