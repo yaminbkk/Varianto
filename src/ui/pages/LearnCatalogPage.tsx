@@ -1,5 +1,11 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  CATEGORIES,
+  CATEGORY_LABELS,
+  inCategory,
+  type Category,
+} from '../../domain/learn/categories'
 import { courseThumbnail } from '../../domain/learn/thumbnail'
 import { searchCourses } from '../../domain/learn/searchCourses'
 import { visibleCourses } from '../../domain/learn/visibleCourses'
@@ -19,6 +25,7 @@ export default function LearnCatalogPage() {
   const statusId = useId()
   const mainRef = useRef<HTMLElement>(null)
   const [query, setQuery] = useState('')
+  const [category, setCategory] = useState<Category | null>(null)
   const [counts, setCounts] = useState<Map<string, number>>(new Map())
 
   useEffect(() => {
@@ -39,7 +46,17 @@ export default function LearnCatalogPage() {
     () => (state.status === 'ready' ? visibleCourses(state.courses, hiddenCourses) : null),
     [state],
   )
-  const shown = useMemo(() => (courses ? searchCourses(courses, query) : []), [courses, query])
+  const shown = useMemo(() => {
+    const found = courses ? searchCourses(courses, query) : []
+    return category ? found.filter((c) => inCategory(c, category)) : found
+  }, [courses, query, category])
+  const categoryCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        CATEGORIES.map((c) => [c, courses ? courses.filter((x) => inCategory(x, c)).length : 0]),
+      ) as Record<Category, number>,
+    [courses],
+  )
 
   return (
     <>
@@ -69,6 +86,28 @@ export default function LearnCatalogPage() {
             autoComplete="off"
             disabled={courses === null}
           />
+        </div>
+        <div className="chips" role="group" aria-label="Filter openings">
+          <button
+            type="button"
+            className="chip"
+            aria-pressed={category === null}
+            onClick={() => setCategory(null)}
+          >
+            All
+          </button>
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="chip"
+              aria-pressed={category === c}
+              onClick={() => setCategory(category === c ? null : c)}
+            >
+              {CATEGORY_LABELS[c]}
+              {courses && <span className="chip-count">{categoryCounts[c]}</span>}
+            </button>
+          ))}
         </div>
         {state.status === 'failed' ? (
           <div role="alert" className="alert">
