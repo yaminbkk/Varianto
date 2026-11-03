@@ -17,7 +17,7 @@ function validateMoves(pgn: string): string | null {
     const san = token.replace(/^\d+\.+/, '')
     if (san === '') continue
     try {
-      chess.move(san)
+      chess.move(san, { strict: true })
     } catch {
       return `illegal move "${san}"`
     }
