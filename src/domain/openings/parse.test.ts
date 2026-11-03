@@ -56,6 +56,16 @@ describe('parseOpeningsTsv', () => {
     )
   })
 
+  it('rejects a header whose columns are not eco, name, pgn', () => {
+    const text = 'name\teco\tpgn\nAmar Opening\tA00\t1. Nh3\n'
+    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/test\.tsv:1:/)
+  })
+
+  it('treats the same moves written with different spacing as duplicates', () => {
+    const text = `${HEADER}\nA00\tAmar Opening\t1.Nh3\nA00\tAmar Opening\t1. Nh3\n`
+    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/Duplicate opening A00/)
+  })
+
   it('preserves non-ASCII names', () => {
     const text = `${HEADER}\nC30\tGambito del Rey Ñ\t1. e4 e5 2. f4\n`
     expect(parseOpeningsTsv(text, 'test.tsv')[0]?.name).toBe('Gambito del Rey Ñ')
