@@ -36,22 +36,26 @@ Each line is pinned by a test in the task that owns it (Tasks 2 and 3).
 ### Task 1: Vendor the source data and attribution
 
 **Files:**
+
 - Create: `data/openings/a.tsv`, `data/openings/b.tsv`, `data/openings/c.tsv`, `data/openings/d.tsv`, `data/openings/e.tsv` (copied verbatim from the pinned commit)
 - Create: `data/openings/COPYING.txt` (copied verbatim from the pinned commit)
 - Create: `data/openings/SOURCE.md`
 - Modify: `README.md` (one "Credits" section pointing to `data/openings/SOURCE.md`)
 
 **Interfaces:**
+
 - Consumes: nothing.
 - Produces: the five TSV paths above, used by Task 3.
 
 - [ ] **Step 1: Fetch the five TSV files and COPYING.txt at the pinned commit**
 
 Run:
+
 ```bash
 for f in a b c d e; do gh api "repos/lichess-org/chess-openings/contents/$f.tsv?ref=712a58be746c143f4ab935b68acc50f4bac813eb" -H "Accept: application/vnd.github.raw" > "data/openings/$f.tsv"; done
 gh api "repos/lichess-org/chess-openings/contents/COPYING.txt?ref=712a58be746c143f4ab935b68acc50f4bac813eb" -H "Accept: application/vnd.github.raw" > data/openings/COPYING.txt
 ```
+
 Expected: five TSV files plus `COPYING.txt` exist. Step 4 is the authoritative row count.
 
 - [ ] **Step 2: Write `data/openings/SOURCE.md`**
@@ -81,27 +85,36 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 2: Parse and validate TSV rows (TDD)
 
 **Files:**
+
 - Create: `src/domain/openings/types.ts`
 - Create: `src/domain/openings/parse.ts`
 - Test: `src/domain/openings/parse.test.ts`
 
 **Interfaces:**
+
 - Consumes: `chess.js` (`Chess`, `DEFAULT_POSITION`).
 - Produces:
+
   ```ts
   // types.ts
-  export interface OpeningLine { eco: string; name: string; pgn: string }
+  export interface OpeningLine {
+    eco: string
+    name: string
+    pgn: string
+  }
 
   // parse.ts
   export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine[]
   // Throws Error whose message starts with `${sourceLabel}:${lineNumber}:` on the first invalid row.
   // Throws `Duplicate opening ${eco} "${name}" at ${sourceLabel}:${lineNumber}` on an exact (eco, name, pgn) duplicate within the text.
   ```
+
   `parseOpeningsTsv` does not handle cross-file duplicates; Task 3 does that.
 
 - [ ] **Step 1: Write the failing tests**
 
 In `parse.test.ts`, write these cases (names exact):
+
 - `parses a header and one row into an OpeningLine`: input `"eco\tname\tpgn\nA00\tAmar Opening\t1. Nh3\n"` → `[{ eco: 'A00', name: 'Amar Opening', pgn: '1. Nh3' }]`.
 - `accepts CRLF line endings and trims cells` (Review Focus 1): input with `\r\n` and trailing spaces in `name` → same shape, trimmed.
 - `strips a trailing result token before validation` (Review Focus 2): pgn `1. e4 e5 1-0` → stored pgn is `1. e4 e5` (store the stripped form).
@@ -144,6 +157,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 3: Build script and generated JSON (TDD)
 
 **Files:**
+
 - Create: `scripts/build-openings.ts`
 - Create: `src/data/openings.json` (generated, committed)
 - Create: `src/domain/openings/build.ts`
@@ -151,14 +165,17 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Modify: `package.json` (add script `"openings": "node scripts/build-openings.ts"`)
 
 **Interfaces:**
+
 - Consumes: `parseOpeningsTsv` from Task 2.
 - Produces:
+
   ```ts
   // build.ts
   export function buildOpeningLibrary(files: { label: string; text: string }[]): OpeningLine[]
   // Parses each file, rejects duplicate (eco, name, pgn) across all files with a message
   // naming both labels and line numbers, and returns lines sorted by eco then name.
   ```
+
   `scripts/build-openings.ts` reads `data/openings/{a..e}.tsv`, calls `buildOpeningLibrary`, writes `JSON.stringify(lines, null, 2) + '\n'` to `src/data/openings.json`.
 
 - [ ] **Step 1: Write the failing tests in `build.test.ts`**
@@ -207,12 +224,15 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 4: Search openings (TDD)
 
 **Files:**
+
 - Create: `src/domain/openings/search.ts`
 - Test: `src/domain/openings/search.test.ts`
 
 **Interfaces:**
+
 - Consumes: `OpeningLine` from `types.ts`.
 - Produces:
+
   ```ts
   export function findOpenings(lines: readonly OpeningLine[], query: string): OpeningLine[]
   // Case-insensitive substring match on name or eco. Empty or whitespace-only query returns all lines.
@@ -258,12 +278,15 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 5: Copy a line into a repertoire (TDD)
 
 **Files:**
+
 - Create: `src/domain/openings/addToRepertoire.ts`
 - Test: `src/domain/openings/addToRepertoire.test.ts`
 
 **Interfaces:**
+
 - Consumes: `OpeningLine` (Task 2), `Repertoire` and `IdFactory` from `src/domain/repertoire/tree.ts`, `importPgn` from `src/domain/pgn/pgn.ts`.
 - Produces:
+
   ```ts
   export function addOpeningToRepertoire(
     rep: Repertoire,

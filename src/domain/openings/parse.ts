@@ -38,7 +38,9 @@ export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine
   const lines = text.split('\n')
   const header = (lines[0] ?? '').replace(/\r$/, '').trim().split('\t')
   if (header.join('\t') !== 'eco\tname\tpgn') {
-    throw new Error(`${sourceLabel}:1: expected header "eco\tname\tpgn", got "${header.join('\t')}"`)
+    throw new Error(
+      `${sourceLabel}:1: expected header "eco\tname\tpgn", got "${header.join('\t')}"`,
+    )
   }
   const seen = new Set<string>()
   const result: OpeningLine[] = []
@@ -54,7 +56,12 @@ export function parseOpeningsTsv(text: string, sourceLabel: string): OpeningLine
 
     const cells = raw.split('\t')
     const [ecoCell, nameCell, pgnCell] = cells
-    if (cells.length !== 3 || ecoCell === undefined || nameCell === undefined || pgnCell === undefined) {
+    if (
+      cells.length !== 3 ||
+      ecoCell === undefined ||
+      nameCell === undefined ||
+      pgnCell === undefined
+    ) {
       return fail(`expected 3 tab-separated cells, got ${cells.length}`)
     }
     const eco = ecoCell.trim()

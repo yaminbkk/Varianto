@@ -40,10 +40,7 @@ export class DexieRepertoireStore implements RepertoireStore {
   async loadAll(): Promise<Repertoire[]> {
     const { db } = this
     return db.transaction('r', db.repertoires, db.nodes, async () => {
-      const [repertoires, nodes] = await Promise.all([
-        db.repertoires.toArray(),
-        db.nodes.toArray(),
-      ])
+      const [repertoires, nodes] = await Promise.all([db.repertoires.toArray(), db.nodes.toArray()])
       return repertoires.map((repertoire) =>
         fromRows(
           repertoire,

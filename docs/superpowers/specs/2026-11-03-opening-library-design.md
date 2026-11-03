@@ -47,18 +47,20 @@ Users should be able to browse named chess openings and their main lines from th
 
 ```ts
 export interface OpeningLine {
-  eco: string   // e.g. "A00"
-  name: string  // e.g. "Amar Opening: Paris Gambit"
-  pgn: string   // moves from the start position, SAN
+  eco: string // e.g. "A00"
+  name: string // e.g. "Amar Opening: Paris Gambit"
+  pgn: string // moves from the start position, SAN
 }
 ```
 
 **Validation and generation** (`scripts/build-openings.ts`):
+
 - Parse each TSV row. Reject rows where `pgn` is not fully legal according to `chess.js`, and fail the build with the row number.
 - Reject duplicate `(eco, name, pgn)` triples. The same name may appear with different lines (266 such name pairs exist in the source), so the identifier is the full triple. The `pgn` part of the key is compared ignoring move-number spacing (`1.Nh3` and `1. Nh3` are the same line).
 - Write sorted, stable output to `src/data/openings.json`.
 
 **Domain functions** (`src/domain/openings/`):
+
 - `findOpenings(lines, query)`: case-insensitive search on `name` and `eco`. Pure and returns a new array.
 - `addOpeningToRepertoire(rep, line, newId)`: uses the existing `importPgn` to add a line to a repertoire. No new tree logic.
 

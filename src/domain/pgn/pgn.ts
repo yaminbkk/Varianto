@@ -27,7 +27,10 @@ interface ParsedGame {
 
 /** Keeps the human text: drops [%clk ...] style commands and extra whitespace. */
 function cleanComment(raw: string): string {
-  return raw.replace(/\[%[^\]]*\]/g, '').replace(/\s+/g, ' ').trim()
+  return raw
+    .replace(/\[%[^\]]*\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /** PGN comments cannot contain braces, so they are removed on export. */

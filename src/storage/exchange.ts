@@ -10,10 +10,7 @@ export class ImportError extends Error {
   }
 }
 
-export function exportRepertoires(
-  reps: Repertoire[],
-  now: () => Date = () => new Date(),
-): string {
+export function exportRepertoires(reps: Repertoire[], now: () => Date = () => new Date()): string {
   return JSON.stringify(
     {
       format: EXPORT_FORMAT,

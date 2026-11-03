@@ -26,15 +26,15 @@ Later: learn mode with explanations, Stockfish eval bar (WASM, optional), drill 
 
 ## Tech stack
 
-| Area | Choice |
-|---|---|
-| App | Vite, React, TypeScript (strict) |
-| Board | [chessground](https://github.com/lichess-org/chessground) |
-| Rules and PGN | [chess.js](https://github.com/jhlywa/chess.js) |
+| Area              | Choice                                                       |
+| ----------------- | ------------------------------------------------------------ |
+| App               | Vite, React, TypeScript (strict)                             |
+| Board             | [chessground](https://github.com/lichess-org/chessground)    |
+| Rules and PGN     | [chess.js](https://github.com/jhlywa/chess.js)               |
 | Spaced repetition | [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) |
-| Storage | IndexedDB via [Dexie](https://dexie.org) |
-| State and routing | Zustand, React Router |
-| Tests | Vitest |
+| Storage           | IndexedDB via [Dexie](https://dexie.org)                     |
+| State and routing | Zustand, React Router                                        |
+| Tests             | Vitest                                                       |
 
 ## Development
 

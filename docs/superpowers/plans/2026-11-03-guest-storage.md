@@ -36,15 +36,25 @@ The `nodes` table uses the compound primary key `[repertoireId+id]`, not `id` al
 ### Task 1: Row conversion
 
 **Files:**
+
 - Create: `src/storage/convert.ts`
 - Test: `src/storage/convert.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Repertoire`, `MoveNode`, `Color`, `createRepertoire`, `addMove` from `src/domain/repertoire/tree.ts`.
 - Produces:
+
   ```ts
-  export interface RepertoireRow { id: string; name: string; color: Color; rootId: string }
-  export interface NodeRow extends MoveNode { repertoireId: string }
+  export interface RepertoireRow {
+    id: string
+    name: string
+    color: Color
+    rootId: string
+  }
+  export interface NodeRow extends MoveNode {
+    repertoireId: string
+  }
   export function toRows(rep: Repertoire): { repertoire: RepertoireRow; nodes: NodeRow[] }
   export function fromRows(repertoire: RepertoireRow, nodes: NodeRow[]): Repertoire
   ```
@@ -65,12 +75,15 @@ The `nodes` table uses the compound primary key `[repertoireId+id]`, not `id` al
 ### Task 2: JSON export and validated import
 
 **Files:**
+
 - Create: `src/storage/exchange.ts`
 - Test: `src/storage/exchange.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Repertoire` from the domain.
 - Produces:
+
   ```ts
   export const EXPORT_FORMAT = 'varianto-repertoires'
   export const EXPORT_VERSION = 1
@@ -93,16 +106,23 @@ The `nodes` table uses the compound primary key `[repertoireId+id]`, not `id` al
 ### Task 3: RepertoireStore interface and Dexie implementation
 
 **Files:**
+
 - Create: `src/storage/store.ts`, `src/storage/db.ts`, `src/storage/dexieStore.ts`
 - Test: `src/storage/dexieStore.test.ts`
 - Modify: `package.json` (dev dependency `fake-indexeddb@6.2.7`)
 
 **Interfaces:**
+
 - Consumes: Task 1 `toRows`, `fromRows`, `RepertoireRow`, `NodeRow`.
 - Produces:
+
   ```ts
   // store.ts
-  export interface RepertoireSummary { id: string; name: string; color: Color }
+  export interface RepertoireSummary {
+    id: string
+    name: string
+    color: Color
+  }
   export interface RepertoireStore {
     save(rep: Repertoire): Promise<void>
     saveMany(reps: Repertoire[]): Promise<void>
@@ -112,13 +132,19 @@ The `nodes` table uses the compound primary key `[repertoireId+id]`, not `id` al
     remove(id: string): Promise<void>
   }
   // db.ts
-  export class VariantoDb extends Dexie { repertoires!: Table<RepertoireRow, string>; nodes!: Table<NodeRow, [string, string]>; constructor(name = 'varianto') }
+  export class VariantoDb extends Dexie {
+    repertoires!: Table<RepertoireRow, string>
+    nodes!: Table<NodeRow, [string, string]>
+    constructor(name = 'varianto')
+  }
   // dexieStore.ts
-  export class DexieRepertoireStore implements RepertoireStore { constructor(db: VariantoDb) }
+  export class DexieRepertoireStore implements RepertoireStore {
+    constructor(db: VariantoDb)
+  }
   ```
 
 - [ ] **Step 1: Install** `npm install -D fake-indexeddb@6.2.7`.
-- [ ] **Step 2: Write the failing tests**. Start the file with `import 'fake-indexeddb/auto'`. Each test builds a `new VariantoDb(\`test-${crypto.randomUUID()}\`)` so tests are isolated, and closes it in `afterEach`.
+- [ ] **Step 2: Write the failing tests**. Start the file with `import 'fake-indexeddb/auto'`. Each test builds a `new VariantoDb(\`test-${crypto.randomUUID()}\`)`so tests are isolated, and closes it in`afterEach`.
   - `saves and loads a repertoire`: `load(rep.id)` `toEqual(rep)`.
   - `returns undefined for an unknown id`.
   - `lists summaries`: two saved reps give `[{id,name,color}, ...]` (compare sorted by id).

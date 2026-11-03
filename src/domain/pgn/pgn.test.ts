@@ -41,9 +41,7 @@ describe('importPgn', () => {
       '[Event "x"]\n\n1. e4 e5 (1... c5 2. Nf3 (2. c3) 2... d6) 2. Nf3 Nc6 *\n',
     )
 
-    expect(lines(result).sort()).toEqual(
-      ['e4 c5 Nf3 d6', 'e4 c5 c3', 'e4 e5 Nf3 Nc6'].sort(),
-    )
+    expect(lines(result).sort()).toEqual(['e4 c5 Nf3 d6', 'e4 c5 c3', 'e4 e5 Nf3 Nc6'].sort())
   })
 
   it('keeps comments on the node they follow', () => {
@@ -64,10 +62,7 @@ describe('importPgn', () => {
 
   it('merges several games into one tree without duplicating shared moves', () => {
     const rep = createRepertoire('Test', 'white', sequentialIds())
-    const result = importInto(
-      rep,
-      '[Event "a"]\n\n1. e4 e5 *\n\n[Event "b"]\n\n1. e4 c5 *\n',
-    )
+    const result = importInto(rep, '[Event "a"]\n\n1. e4 e5 *\n\n[Event "b"]\n\n1. e4 c5 *\n')
 
     expect(getChildren(result, result.rootId)).toHaveLength(1)
     expect(lines(result).sort()).toEqual(['e4 c5', 'e4 e5'])
@@ -76,10 +71,7 @@ describe('importPgn', () => {
   it('accepts a game that starts from the repertoire start position', () => {
     const fen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
     const rep = createRepertoire('Test', 'black', sequentialIds(), fen)
-    const result = importInto(
-      rep,
-      `[Event "x"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n1... c5 2. Nf3 *\n`,
-    )
+    const result = importInto(rep, `[Event "x"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n1... c5 2. Nf3 *\n`)
 
     expect(lines(result)).toEqual(['c5 Nf3'])
   })

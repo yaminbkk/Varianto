@@ -56,9 +56,7 @@ describe('parseOpeningsTsv', () => {
   it('rejects an exact duplicate row within one text', () => {
     const row = 'A00\tAmar Opening\t1. Nh3'
     const text = `${HEADER}\n${row}\n${row}\n`
-    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(
-      /Duplicate opening A00 "Amar Opening"/,
-    )
+    expect(() => parseOpeningsTsv(text, 'test.tsv')).toThrow(/Duplicate opening A00 "Amar Opening"/)
   })
 
   it('rejects a header whose columns are not eco, name, pgn', () => {
