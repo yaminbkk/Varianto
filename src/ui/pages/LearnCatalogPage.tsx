@@ -1,6 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { courseThumbnail } from '../../domain/learn/thumbnail'
+import { visibleCourses } from '../../domain/learn/visibleCourses'
+import hiddenCourses from '../../data/hidden-courses.json'
 import { ecoFamily } from '../../domain/openings/ecoFamily'
 import MiniBoard from '../MiniBoard'
 import { homePath, coursePath } from '../paths'
@@ -31,7 +33,11 @@ export default function LearnCatalogPage() {
     }
   }, [progress])
 
-  const courses = state.status === 'ready' ? state.courses : null
+  // Obscure and fragment courses stay in the data and reachable by link, but are not listed.
+  const courses = useMemo(
+    () => (state.status === 'ready' ? visibleCourses(state.courses, hiddenCourses) : null),
+    [state],
+  )
   const shown = useMemo(() => {
     const needle = query.trim().toLowerCase()
     if (!courses) return []
