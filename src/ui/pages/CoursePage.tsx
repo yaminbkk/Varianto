@@ -3,9 +3,17 @@ import { Link, useParams } from 'react-router-dom'
 import type { Course } from '../../domain/learn/courses'
 import { defaultSide, depthChoices, linesFor, type Depth } from '../../domain/learn/depth'
 import { courseProgress } from '../../domain/learn/nextLine'
+import { courseThumbnail } from '../../domain/learn/thumbnail'
+import {
+  progressId,
+  resolveCourse,
+  variantCourses,
+  variationName,
+} from '../../domain/learn/variants'
 import type { OpeningDescription } from '../../domain/openings/describe'
 import type { Color } from '../../domain/repertoire/tree'
-import { learnPath, lessonPath } from '../paths'
+import MiniBoard from '../MiniBoard'
+import { coursePath, learnPath, lessonPath } from '../paths'
 import SideField from '../SideField'
 import SkipLink from '../SkipLink'
 import { useCourses } from '../useCourses'
@@ -21,11 +29,19 @@ const DEPTH_LABELS: Record<Depth, string> = {
 export default function CoursePage() {
   const { courseId = '' } = useParams()
   const state = useCourses()
-  const course = state.status === 'ready' ? state.courses.find((c) => c.id === courseId) : undefined
+  const course = state.status === 'ready' ? resolveCourse(state.courses, courseId) : undefined
 
+  const parent =
+    course?.parentId && state.status === 'ready'
+      ? state.courses.find((c) => c.id === course.parentId)
+      : undefined
   const back = (
     <p>
-      <Link to={learnPath}>Back to all courses</Link>
+      {parent ? (
+        <Link to={coursePath(parent.id)}>Back to {parent.name}</Link>
+      ) : (
+        <Link to={learnPath}>Back to all courses</Link>
+      )}
     </p>
   )
 
@@ -74,7 +90,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
 
   useEffect(() => {
     let alive = true
-    progress.learnedLines(course.id).then(
+    progress.learnedLines(progressId(course)).then(
       (set) => {
         if (alive) setLearned(set)
       },
@@ -83,7 +99,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
     return () => {
       alive = false
     }
-  }, [progress, course.id])
+  }, [progress, course])
 
   useEffect(() => {
     let alive = true
@@ -100,6 +116,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
     }
   }, [course])
 
+  const variants = course.parentId ? [] : variantCourses(course)
   const choices = depthChoices(course, side)
   const depth: Depth | null =
     depthPick && choices.includes(depthPick) ? depthPick : (choices[0] ?? null)
@@ -108,7 +125,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
     : { done: 0, total: 0 }
 
   async function reset() {
-    await progress.reset(course.id)
+    await progress.reset(progressId(course))
     setLearned(new Set())
     setConfirmReset(false)
   }
@@ -167,7 +184,33 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
           )}
         </section>
 
-        {learned.size > 0 && (
+        {variants.length > 0 && (
+          <section aria-labelledby={`${depthName}-variants`}>
+            <h2 id={`${depthName}-variants`}>Variations</h2>
+            <p className="hint">Learn a variation on its own.</p>
+            <ul className="course-grid">
+              {variants.map((variant) => {
+                const thumb = courseThumbnail(variant)
+                const learnedHere = variant.lines.filter((l) => learned.has(l.key)).length
+                return (
+                  <li key={variant.id}>
+                    <Link className="course-card" to={coursePath(variant.id)}>
+                      <MiniBoard fen={thumb.fen} orientation={thumb.orientation} />
+                      <span className="course-name">
+                        {variationName(variant.name) ?? variant.name}
+                      </span>
+                      <span className="course-meta">
+                        {variant.lines.length} lines · {learnedHere} learned
+                      </span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
+
+        {learned.size > 0 && !course.parentId && (
           <section className="panel">
             {confirmReset ? (
               <div role="alert">

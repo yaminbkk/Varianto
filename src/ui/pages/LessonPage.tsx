@@ -12,6 +12,7 @@ import {
   type Lesson,
 } from '../../domain/learn/lesson'
 import { courseProgress, nextLine } from '../../domain/learn/nextLine'
+import { progressId, resolveCourse } from '../../domain/learn/variants'
 import { explanationFor } from '../../domain/learn/moveExplanations'
 import { soundKindFor, type SoundKind } from '../../domain/learn/soundKind'
 import { sanSequence } from '../../domain/openings/parse'
@@ -71,7 +72,7 @@ export default function LessonPage() {
       </Shell>
     )
   }
-  const course = state.courses.find((c) => c.id === courseId)
+  const course = resolveCourse(state.courses, courseId)
   if (!course) {
     return (
       <Shell>
@@ -104,7 +105,7 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
 
   useEffect(() => {
     let alive = true
-    progress.learnedLines(course.id).then(
+    progress.learnedLines(progressId(course)).then(
       (set) => {
         if (!alive) return
         setLearned(set)
@@ -167,7 +168,7 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
     next.add(key)
     setLearned(next)
     try {
-      await progress.markLearned(course.id, key)
+      await progress.markLearned(progressId(course), key)
     } catch {
       // Progress could not be saved; the session still works and the line stays unlearned on reload.
     }
