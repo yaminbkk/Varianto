@@ -17,6 +17,8 @@ const repertoireRoute = '/r/:id'
 const openingRoute = `${openingsPath}/:key`
 const courseRoute = `${learnPath}/:courseId`
 const lessonRoute = `${learnPath}/:courseId/play`
+const practiceRoute = `${learnPath}/:courseId/practice`
+const drillRoute = `${learnPath}/:courseId/drill`
 
 export function createAppRouter(store: StoreApi<AppState>, progress: ProgressStore) {
   return createHashRouter([
@@ -46,6 +48,14 @@ export function createAppRouter(store: StoreApi<AppState>, progress: ProgressSto
         {
           path: lessonRoute,
           lazy: async () => ({ Component: (await import('./pages/LessonPage')).default }),
+        },
+        {
+          path: practiceRoute,
+          lazy: async () => ({ Component: (await import('./pages/PracticePage')).default }),
+        },
+        {
+          path: drillRoute,
+          lazy: async () => ({ Component: (await import('./pages/DrillPage')).default }),
         },
         { path: '*', element: <NotFoundPage /> },
       ],

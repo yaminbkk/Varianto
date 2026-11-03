@@ -13,7 +13,7 @@ import {
 import type { OpeningDescription } from '../../domain/openings/describe'
 import type { Color } from '../../domain/repertoire/tree'
 import MiniBoard from '../MiniBoard'
-import { coursePath, learnPath, lessonPath } from '../paths'
+import { coursePath, drillPath, learnPath, lessonPath, practicePath } from '../paths'
 import SideField from '../SideField'
 import SkipLink from '../SkipLink'
 import { useCourses } from '../useCourses'
@@ -124,6 +124,8 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
     ? courseProgress(course, depth, side, learned)
     : { done: 0, total: 0 }
 
+  const learnedHere = course.lines.filter((l) => learned.has(l.key)).length
+
   async function reset() {
     await progress.reset(progressId(course))
     setLearned(new Set())
@@ -183,6 +185,23 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
             </>
           )}
         </section>
+
+        {learnedHere > 0 && (
+          <section className="panel" aria-labelledby={`${depthName}-review`}>
+            <h2 id={`${depthName}-review`}>Review what you have learned</h2>
+            <p className="hint">
+              {learnedHere} learned {learnedHere === 1 ? 'line' : 'lines'} in this course.
+            </p>
+            <div className="actions">
+              <Link className="btn btn-primary" to={practicePath(course.id)}>
+                Practice
+              </Link>
+              <Link className="btn" to={drillPath(course.id)}>
+                Drill
+              </Link>
+            </div>
+          </section>
+        )}
 
         {variants.length > 0 && (
           <section aria-labelledby={`${depthName}-variants`}>
