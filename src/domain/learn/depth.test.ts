@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Course, CourseLine } from './courses'
-import { defaultSide, depthChoices, linesFor, lineOwner } from './depth'
+import { depthChoices, linesFor, lineOwner } from './depth'
 
 function courseOf(...plies: number[]): Course {
   const lines: CourseLine[] = plies.map((p, i) => ({
@@ -47,18 +47,6 @@ describe('linesFor', () => {
   it('keeps library order for lines of equal length', () => {
     const c = courseOf(5, 5, 5)
     expect(linesFor(c, 'full', 'white').map((l) => l.key)).toEqual(['k0', 'k1', 'k2'])
-  })
-})
-
-describe('defaultSide', () => {
-  it('picks the side with more lines', () => {
-    expect(defaultSide(courseOf(2, 4, 3))).toBe('black')
-    expect(defaultSide(courseOf(1, 3, 4))).toBe('white')
-  })
-
-  it('prefers White on a tie and when there are no lines', () => {
-    expect(defaultSide(courseOf(3, 4))).toBe('white')
-    expect(defaultSide(courseOf())).toBe('white')
   })
 })
 

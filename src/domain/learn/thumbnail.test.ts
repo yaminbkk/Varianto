@@ -3,7 +3,8 @@ import library from '../../data/openings.json'
 import type { OpeningLine } from '../openings/types'
 import type { Course, CourseLine } from './courses'
 import { coursesFrom } from './courses'
-import { courseThumbnail } from './thumbnail'
+import { linesFor } from './depth'
+import { courseThumbnail, naturalSide } from './thumbnail'
 
 function courseOf(name: string, ...lines: { name: string; pgn: string; plies: number }[]): Course {
   const courseLines: CourseLine[] = lines.map((l, i) => ({
@@ -55,6 +56,30 @@ describe('courseThumbnail', () => {
   it('has a position for every course of the real library', () => {
     for (const course of coursesFrom(library as OpeningLine[])) {
       expect(courseThumbnail(course).fen).toMatch(/^[^ ]+ [wb] /)
+    }
+  })
+})
+
+describe('naturalSide', () => {
+  it('is White for an opening White plays and Black for a defence', () => {
+    const italian = courseOf('Italian Game', {
+      name: 'Italian Game',
+      pgn: '1. e4 e5 2. Nf3 Nc6 3. Bc4',
+      plies: 5,
+    })
+    const french = courseOf(
+      'French Defense',
+      { name: 'French Defense', pgn: '1. e4 e6', plies: 2 },
+      { name: 'French Defense: Advance', pgn: '1. e4 e6 2. d4 d5 3. e5', plies: 5 },
+      { name: 'French Defense: Tarrasch', pgn: '1. e4 e6 2. d4 d5 3. Nd2', plies: 5 },
+    )
+    expect(naturalSide(italian)).toBe('white')
+    expect(naturalSide(french)).toBe('black')
+  })
+
+  it('has lines to learn on that side for every course of the real library', () => {
+    for (const course of coursesFrom(library as OpeningLine[])) {
+      expect(linesFor(course, 'full', naturalSide(course)).length).toBeGreaterThan(0)
     }
   })
 })
