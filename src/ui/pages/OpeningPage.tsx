@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { describeOpening } from '../../domain/openings/describe'
+import { lineOwner } from '../../domain/learn/depth'
 import { openingPositions, START_FEN } from '../../domain/openings/positions'
 import type { Color } from '../../domain/repertoire/tree'
 import ActionError from '../ActionError'
@@ -30,7 +31,8 @@ function OpeningView({ openingKey: key }: { openingKey: string }) {
   const navigate = useNavigate()
   const mainRef = useRef<HTMLElement>(null)
   const [step, setStep] = useState(0)
-  const [color, setColor] = useState<Color>('white')
+  // Until the learner picks a side, show the side that plays this line (Black for a defence).
+  const [sidePick, setSidePick] = useState<Color | null>(null)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -39,6 +41,7 @@ function OpeningView({ openingKey: key }: { openingKey: string }) {
   const info =
     line && state.status === 'ready' ? describeOpening(line, state.data.descriptions) : null
   const total = positions.length
+  const color: Color = sidePick ?? (total > 0 ? lineOwner(total) : 'white')
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -164,7 +167,7 @@ function OpeningView({ openingKey: key }: { openingKey: string }) {
 
             <section className="panel" aria-labelledby="start-heading">
               <h2 id="start-heading">Practice this opening</h2>
-              <SideField name="opening-page-side" value={color} onChange={setColor} />
+              <SideField name="opening-page-side" value={color} onChange={setSidePick} />
               <ActionError message={message} />
               <Link className="btn" to={coursePath(slug(courseName(line.name)))}>
                 Learn this opening

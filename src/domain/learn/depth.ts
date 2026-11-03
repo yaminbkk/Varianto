@@ -29,13 +29,6 @@ export function linesFor(course: Course, depth: Depth, side: Color): CourseLine[
     .map(({ l }) => l)
 }
 
-/** The side with more lines in the course, White when equal. */
-export function defaultSide(course: Course): Color {
-  const white = linesFor(course, 'full', 'white').length
-  const black = linesFor(course, 'full', 'black').length
-  return black > white ? 'black' : 'white'
-}
-
 /** The depths worth offering: each adds lines over the previous one. Empty when nothing is learnable. */
 export function depthChoices(course: Course, side: Color): Depth[] {
   const choices: Depth[] = []

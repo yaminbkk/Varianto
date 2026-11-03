@@ -1,9 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Course } from '../../domain/learn/courses'
-import { defaultSide, depthChoices, linesFor, type Depth } from '../../domain/learn/depth'
+import { depthChoices, linesFor, type Depth } from '../../domain/learn/depth'
 import { courseProgress } from '../../domain/learn/nextLine'
-import { courseThumbnail } from '../../domain/learn/thumbnail'
+import { courseThumbnail, naturalSide } from '../../domain/learn/thumbnail'
 import {
   progressId,
   resolveCourse,
@@ -82,7 +82,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
   const progress = useProgress()
   const mainRef = useRef<HTMLElement>(null)
   const depthName = useId()
-  const [side, setSide] = useState<Color>(() => defaultSide(course))
+  const [side, setSide] = useState<Color>(() => naturalSide(course))
   const [depthPick, setDepthPick] = useState<Depth | null>(null)
   const [learned, setLearned] = useState<ReadonlySet<string>>(new Set())
   const [description, setDescription] = useState<OpeningDescription | null>(null)
