@@ -70,12 +70,21 @@ Three choices shape the build. For each, I list the options and my recommendatio
 
 From `ui-ux-pro-max`, the closest matching style is "Minimalism & Swiss Style": white space, a grid layout, one accent color, sans-serif type, no decorative shadows, clear hierarchy. The search also suggested a "Dark Mode (OLED)" option, but that result was for a FAQ landing page and I did not adopt it. The recommended tool-style results (claymorphism, playful colors) are for kids' apps and do not fit.
 
+Searches run for this section (from `ui-ux-pro-max`):
+- `touch target size` (ux): the guidance is platform-specific. For web, WCAG 2.2 AA requires 24×24 CSS px; the 44 pt and 48 dp figures are for native apps. Varianto is a web app, so 24 px is the floor. For move-list rows on phones I will use a taller row (my call, about 44 px) because the list is the main tap target.
+- `keyboard nav` (ux): tab order must follow visual order, every action must work without a pointer, and a skip-to-content link is recommended on nav-heavy pages.
+- `chess board` (product): the matching result was for a card/board game with felt and wood textures. Not adopted, because Varianto is a study tool, not a game.
+- Stack search for `html-tailwind` ("tree view nested list") returned no match. Stack-specific notes come from the chosen CSS approach instead.
+
 Proposed (my call, to be checked on a mockup):
 - System font stack, no web font download.
 - One accent color for the selected move and primary buttons; neutrals for everything else.
 - Flat surfaces with 1 px borders. No gradients.
-- Visible focus rings (2 px) on every interactive element.
+- Visible focus rings (2 px) on every interactive element, never removed.
+- Touch targets at least 24 px on web; move-list rows and board action buttons at about 44 px.
+- Skip-to-content link at the top of each page.
 - Board and move list side by side on wide screens, stacked on phones.
+- Move list is a keyboard-navigable list: arrow keys move the selection, Enter plays or selects.
 
 ## Parts of the how (decided here)
 
