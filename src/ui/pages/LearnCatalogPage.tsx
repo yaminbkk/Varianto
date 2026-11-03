@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { courseThumbnail } from '../../domain/learn/thumbnail'
+import { searchCourses } from '../../domain/learn/searchCourses'
 import { visibleCourses } from '../../domain/learn/visibleCourses'
 import hiddenCourses from '../../data/hidden-courses.json'
 import { ecoFamily } from '../../domain/openings/ecoFamily'
@@ -38,17 +39,7 @@ export default function LearnCatalogPage() {
     () => (state.status === 'ready' ? visibleCourses(state.courses, hiddenCourses) : null),
     [state],
   )
-  const shown = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    if (!courses) return []
-    if (needle === '') return courses
-    return courses.filter(
-      (c) =>
-        c.name.toLowerCase().includes(needle) ||
-        c.ecoFrom.toLowerCase().includes(needle) ||
-        c.ecoTo.toLowerCase().includes(needle),
-    )
-  }, [courses, query])
+  const shown = useMemo(() => (courses ? searchCourses(courses, query) : []), [courses, query])
 
   return (
     <>
@@ -60,7 +51,7 @@ export default function LearnCatalogPage() {
         <h1>Learn openings</h1>
         <p className="hint">Pick an opening and play its moves. Mistakes cost nothing.</p>
         <div className="field">
-          <label htmlFor={searchId}>Search by name or ECO code</label>
+          <label htmlFor={searchId}>Search by name, variation, or ECO code</label>
           <input
             id={searchId}
             type="search"
@@ -90,7 +81,7 @@ export default function LearnCatalogPage() {
         {shown.length > 0 && (
           <ul className="course-grid">
             {shown.map((course) => {
-              const done = counts.get(course.id) ?? 0
+              const done = course.parentId ? null : (counts.get(course.id) ?? 0)
               const thumb = courseThumbnail(course)
               return (
                 <li key={course.id}>
@@ -106,8 +97,8 @@ export default function LearnCatalogPage() {
                       · {ecoFamily(course.ecoFrom)}
                     </span>
                     <span className="course-meta">
-                      {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'} · {done}{' '}
-                      learned
+                      {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'}
+                      {done !== null && ` · ${done} learned`}
                     </span>
                   </Link>
                 </li>
