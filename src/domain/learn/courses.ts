@@ -14,6 +14,8 @@ export interface Course {
   lines: CourseLine[]
   ecoFrom: string
   ecoTo: string
+  /** For a variant course, the id of the family it belongs to. Progress is recorded under it. */
+  parentId?: string
 }
 
 /** The course an opening belongs to: its name before the first colon. */
