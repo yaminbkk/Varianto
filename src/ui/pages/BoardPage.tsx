@@ -4,6 +4,7 @@ import { outlineRows, type OutlineRow } from '../../domain/repertoire/outline'
 import { sanFromSquares } from '../../domain/repertoire/squares'
 import { getNode } from '../../domain/repertoire/tree'
 import Board from '../Board'
+import ExportButton from '../ExportButton'
 import { ILLEGAL_MOVE_MESSAGE, friendlyError } from '../messages'
 import MoveList from '../MoveList'
 import { homePath } from '../paths'
@@ -130,6 +131,9 @@ export default function BoardPage() {
         </p>
         <h1>{rep.name}</h1>
         <p className="hint">Playing {rep.color === 'white' ? 'White' : 'Black'}</p>
+        <div className="actions">
+          <ExportButton rep={rep} />
+        </div>
 
         <div className="alerts" role="alert">
           {moveMessage && <p className="alert">{moveMessage}</p>}
