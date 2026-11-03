@@ -6,13 +6,20 @@ import type { Color } from '../domain/repertoire/tree'
 import { repertoirePath } from './paths'
 import SideField from './SideField'
 import ActionError from './ActionError'
-import { useAppStore } from './useAppStore'
+import { failureMessage, useAppStore, useStoreSnapshot } from './useAppStore'
 
 const MAX_RESULTS = 50
 
 /** Search over the opening library. The library is fetched as its own chunk on first mount. */
-export default function OpeningPicker({ onFailure }: { onFailure: (failed: boolean) => void }) {
+export default function OpeningPicker({
+  message,
+  onFailure,
+}: {
+  message: string | null
+  onFailure: (message: string | null) => void
+}) {
   const fromOpening = useAppStore((s) => s.fromOpening)
+  const getState = useStoreSnapshot()
   const navigate = useNavigate()
   const searchId = useId()
   const statusId = useId()
@@ -23,7 +30,6 @@ export default function OpeningPicker({ onFailure }: { onFailure: (failed: boole
   const [query, setQuery] = useState('')
   const [color, setColor] = useState<Color>('white')
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -47,14 +53,10 @@ export default function OpeningPicker({ onFailure }: { onFailure: (failed: boole
 
   async function pick(line: OpeningLine) {
     setBusy(true)
-    setFailed(false)
-    onFailure(false)
+    onFailure(null)
     const id = await fromOpening(line, color)
     setBusy(false)
-    if (id === '') {
-      setFailed(true)
-      onFailure(true)
-    }
+    if (id === '') onFailure(failureMessage(getState()))
     if (id !== '') void navigate(repertoirePath(id))
   }
 
@@ -97,7 +99,7 @@ export default function OpeningPicker({ onFailure }: { onFailure: (failed: boole
                 : `${matches.length} ${matches.length === 1 ? 'opening' : 'openings'}.`}
         </p>
       )}
-      <ActionError failed={failed} />
+      <ActionError message={message} />
       {shown.length > 0 && (
         <ul className="results">
           {shown.map((line) => (

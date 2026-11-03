@@ -4,11 +4,18 @@ import type { Color } from '../domain/repertoire/tree'
 import { repertoirePath } from './paths'
 import SideField from './SideField'
 import ActionError from './ActionError'
-import { useAppStore } from './useAppStore'
+import { failureMessage, useAppStore, useStoreSnapshot } from './useAppStore'
 
 /** Import a repertoire from pasted PGN text or a chosen .pgn file. */
-export default function ImportPgn({ onFailure }: { onFailure: (failed: boolean) => void }) {
+export default function ImportPgn({
+  message,
+  onFailure,
+}: {
+  message: string | null
+  onFailure: (message: string | null) => void
+}) {
   const importPgn = useAppStore((s) => s.importPgn)
+  const getState = useStoreSnapshot()
   const navigate = useNavigate()
   const baseId = useId()
   const nameId = `${baseId}-name`
@@ -27,7 +34,6 @@ export default function ImportPgn({ onFailure }: { onFailure: (failed: boolean) 
   const [textError, setTextError] = useState('')
   const [fileError, setFileError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -57,14 +63,10 @@ export default function ImportPgn({ onFailure }: { onFailure: (failed: boolean) 
       return
     }
     setBusy(true)
-    setFailed(false)
-    onFailure(false)
+    onFailure(null)
     const id = await importPgn(text, name.trim(), color)
     setBusy(false)
-    if (id === '') {
-      setFailed(true)
-      onFailure(true)
-    }
+    if (id === '') onFailure(failureMessage(getState()))
     if (id !== '') void navigate(repertoirePath(id))
   }
 
@@ -126,7 +128,7 @@ export default function ImportPgn({ onFailure }: { onFailure: (failed: boolean) 
             </p>
           )}
         </div>
-        <ActionError failed={failed} />
+        <ActionError message={message} />
         <button type="submit" className="btn btn-primary" disabled={busy}>
           {busy ? 'Importing...' : 'Import'}
         </button>

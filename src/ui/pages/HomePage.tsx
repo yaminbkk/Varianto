@@ -6,7 +6,7 @@ import ImportPgn from '../ImportPgn'
 import OpeningPicker from '../OpeningPicker'
 import { repertoirePath } from '../paths'
 import SideField from '../SideField'
-import { useAppStore } from '../useAppStore'
+import { SAVE_ERROR_MESSAGE, failureMessage, useAppStore, useStoreSnapshot } from '../useAppStore'
 
 type Panel = 'opening' | 'import' | null
 
@@ -17,6 +17,7 @@ export default function HomePage() {
   const loadList = useAppStore((s) => s.loadList)
   const create = useAppStore((s) => s.create)
 
+  const getState = useStoreSnapshot()
   const navigate = useNavigate()
   const baseId = useId()
   const nameId = `${baseId}-name`
@@ -31,8 +32,9 @@ export default function HomePage() {
   const [color, setColor] = useState<Color>('white')
   const [nameError, setNameError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [createFailed, setCreateFailed] = useState(false)
-  const [panelFailed, setPanelFailed] = useState(false)
+  // At most one of these is set: the inline error of the form or panel whose action failed last.
+  const [createMessage, setCreateMessage] = useState<string | null>(null)
+  const [panelMessage, setPanelMessage] = useState<string | null>(null)
 
   // rename and setColor do not refresh the list, so always reload on mount.
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function HomePage() {
   }, [loadList])
 
   function togglePanel(next: Exclude<Panel, null>) {
-    setPanelFailed(false)
+    setPanelMessage(null)
     setPanel((current) => (current === next ? null : next))
   }
 
@@ -70,15 +72,21 @@ export default function HomePage() {
     }
     setNameError('')
     setBusy(true)
-    setCreateFailed(false)
+    setCreateMessage(null)
+    setPanelMessage(null)
     const id = await create(name.trim(), color)
     setBusy(false)
-    if (id === '') setCreateFailed(true)
+    if (id === '') setCreateMessage(failureMessage(getState()))
     else void navigate(repertoirePath(id))
   }
 
   // Errors from an action a form or panel owns are shown there, not in the top banner.
-  const ownedError = createFailed || panelFailed
+  const ownedMessage = createMessage ?? panelMessage
+
+  function reportPanel(message: string | null) {
+    setCreateMessage(null)
+    setPanelMessage(message)
+  }
 
   const actions = (
     <div className="actions">
@@ -111,9 +119,9 @@ export default function HomePage() {
         <p className="hint">A free, local-first chess opening trainer.</p>
 
         <div className="alerts" role="alert">
-          {!ownedError && error && <p className="alert">{error}</p>}
-          {!ownedError && saveError && (
-            <p className="alert">Changes are not saved. Check browser storage.</p>
+          {error && error !== ownedMessage && <p className="alert">{error}</p>}
+          {saveError && SAVE_ERROR_MESSAGE !== ownedMessage && (
+            <p className="alert">{SAVE_ERROR_MESSAGE}</p>
           )}
           {loadFailed && (
             <p className="alert">Your repertoires could not be loaded. Check browser storage.</p>
@@ -146,8 +154,8 @@ export default function HomePage() {
           )}
         </section>
 
-        {panel === 'opening' && <OpeningPicker onFailure={setPanelFailed} />}
-        {panel === 'import' && <ImportPgn onFailure={setPanelFailed} />}
+        {panel === 'opening' && <OpeningPicker message={panelMessage} onFailure={reportPanel} />}
+        {panel === 'import' && <ImportPgn message={panelMessage} onFailure={reportPanel} />}
 
         <section className="panel" aria-labelledby={`${baseId}-new`}>
           <h2 id={`${baseId}-new`}>New repertoire</h2>
@@ -172,7 +180,7 @@ export default function HomePage() {
               )}
             </div>
             <SideField name="new-side" value={color} onChange={setColor} />
-            <ActionError failed={createFailed} />
+            <ActionError message={createMessage} />
             <button type="submit" className="btn btn-primary" disabled={busy}>
               Create repertoire
             </button>
