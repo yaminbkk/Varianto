@@ -3,7 +3,6 @@ import type { NodeRow, RepertoireRow } from './convert'
 
 export class VariantoDb extends Dexie {
   repertoires!: Table<RepertoireRow, string>
-  // Node ids are only unique within a repertoire, hence the compound key.
   nodes!: Table<NodeRow, [string, string]>
 
   constructor(name = 'varianto') {

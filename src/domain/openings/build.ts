@@ -1,8 +1,6 @@
 import { parseOpeningsTsv, sanSequence } from './parse.ts'
 import type { OpeningLine } from './types.ts'
 
-// 1-based line numbers of the data rows, in order. Mirrors the parser, which
-// skips the header and blank lines, so row k of the parse result is rowLines[k].
 function rowLineNumbers(text: string): number[] {
   const numbers: number[] = []
   text.split('\n').forEach((raw, i) => {
@@ -37,7 +35,6 @@ export function buildOpeningLibrary(files: { label: string; text: string }[]): O
   )
 }
 
-// Plain code-unit order, so the output does not depend on the machine's locale.
 function compare(x: string, y: string): number {
   return x < y ? -1 : x > y ? 1 : 0
 }

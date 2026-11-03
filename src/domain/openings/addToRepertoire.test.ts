@@ -14,7 +14,6 @@ function sequentialIds(prefix = 'n') {
   return () => `${prefix}${++i}`
 }
 
-// SAN moves along the first child of every node, from the root to the end of the line.
 function mainline(rep: Repertoire): string[] {
   let id = rep.rootId
   for (let first = getChildren(rep, id)[0]; first; first = getChildren(rep, id)[0]) {

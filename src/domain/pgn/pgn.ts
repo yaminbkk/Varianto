@@ -11,7 +11,6 @@ import {
   type Repertoire,
 } from '../repertoire/tree'
 
-// Shape of @mliebelt/pgn-parser output that this module reads.
 interface ParsedMove {
   notation: { notation: string }
   commentAfter?: string | null
@@ -25,7 +24,6 @@ interface ParsedGame {
   moves: ParsedMove[]
 }
 
-/** Keeps the human text: drops [%clk ...] style commands and extra whitespace. */
 function cleanComment(raw: string): string {
   return raw
     .replace(/\[%[^\]]*\]/g, '')
@@ -53,7 +51,6 @@ function importMoves(
     const comment = cleanComment(move.commentAfter ?? move.commentDiag?.comment ?? '')
     if (comment) current = setComment(current, added.nodeId, comment)
 
-    // A variation replaces the move it follows, so it starts from the same parent.
     for (const variation of move.variations) {
       current = importMoves(current, parent, variation, newId)
     }

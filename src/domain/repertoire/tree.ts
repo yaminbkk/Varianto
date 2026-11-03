@@ -7,7 +7,6 @@ export interface MoveNode {
   parentId: string | null
   /** SAN of the move that reached this node; null only for the root. */
   san: string | null
-  /** Full FEN of the position after this node's move. */
   fen: string
   comment: string
   /** Children in insertion order (first child is the main line). */
@@ -100,7 +99,6 @@ export function addMove(
   }
 }
 
-/** Removes a node and its entire subtree. The root cannot be deleted. */
 export function deleteNode(rep: Repertoire, nodeId: string): Repertoire {
   const target = getNode(rep, nodeId)
   if (target.parentId === null) throw new Error('Cannot delete the root position')
@@ -134,7 +132,6 @@ export function getChildren(rep: Repertoire, nodeId: string): MoveNode[] {
   return getNode(rep, nodeId).childIds.map((id) => getNode(rep, id))
 }
 
-/** Nodes from the root down to `nodeId`, inclusive. */
 export function getLine(rep: Repertoire, nodeId: string): MoveNode[] {
   const line: MoveNode[] = []
   let current: MoveNode | undefined = getNode(rep, nodeId)
@@ -145,7 +142,6 @@ export function getLine(rep: Repertoire, nodeId: string): MoveNode[] {
   return line
 }
 
-/** True when the side to move in this node's position is the repertoire's colour. */
 export function isUserTurn(rep: Repertoire, nodeId: string): boolean {
   const sideToMove = getNode(rep, nodeId).fen.split(' ')[1]
   return (sideToMove === 'w' ? 'white' : 'black') === rep.color
