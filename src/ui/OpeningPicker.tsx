@@ -5,12 +5,13 @@ import type { OpeningLine } from '../domain/openings/types'
 import type { Color } from '../domain/repertoire/tree'
 import { repertoirePath } from './paths'
 import SideField from './SideField'
+import ActionError from './ActionError'
 import { useAppStore } from './useAppStore'
 
 const MAX_RESULTS = 50
 
 /** Search over the opening library. The library is fetched as its own chunk on first mount. */
-export default function OpeningPicker() {
+export default function OpeningPicker({ onFailure }: { onFailure: (failed: boolean) => void }) {
   const fromOpening = useAppStore((s) => s.fromOpening)
   const navigate = useNavigate()
   const searchId = useId()
@@ -22,6 +23,7 @@ export default function OpeningPicker() {
   const [query, setQuery] = useState('')
   const [color, setColor] = useState<Color>('white')
   const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -45,8 +47,14 @@ export default function OpeningPicker() {
 
   async function pick(line: OpeningLine) {
     setBusy(true)
+    setFailed(false)
+    onFailure(false)
     const id = await fromOpening(line, color)
     setBusy(false)
+    if (id === '') {
+      setFailed(true)
+      onFailure(true)
+    }
     if (id !== '') void navigate(repertoirePath(id))
   }
 
@@ -89,6 +97,7 @@ export default function OpeningPicker() {
                 : `${matches.length} ${matches.length === 1 ? 'opening' : 'openings'}.`}
         </p>
       )}
+      <ActionError failed={failed} />
       {shown.length > 0 && (
         <ul className="results">
           {shown.map((line) => (

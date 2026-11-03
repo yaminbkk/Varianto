@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import type { Color } from '../domain/repertoire/tree'
 import { repertoirePath } from './paths'
 import SideField from './SideField'
+import ActionError from './ActionError'
 import { useAppStore } from './useAppStore'
 
 /** Import a repertoire from pasted PGN text or a chosen .pgn file. */
-export default function ImportPgn() {
+export default function ImportPgn({ onFailure }: { onFailure: (failed: boolean) => void }) {
   const importPgn = useAppStore((s) => s.importPgn)
   const navigate = useNavigate()
   const baseId = useId()
@@ -26,6 +27,7 @@ export default function ImportPgn() {
   const [textError, setTextError] = useState('')
   const [fileError, setFileError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -55,8 +57,14 @@ export default function ImportPgn() {
       return
     }
     setBusy(true)
+    setFailed(false)
+    onFailure(false)
     const id = await importPgn(text, name.trim(), color)
     setBusy(false)
+    if (id === '') {
+      setFailed(true)
+      onFailure(true)
+    }
     if (id !== '') void navigate(repertoirePath(id))
   }
 
@@ -118,6 +126,7 @@ export default function ImportPgn() {
             </p>
           )}
         </div>
+        <ActionError failed={failed} />
         <button type="submit" className="btn btn-primary" disabled={busy}>
           {busy ? 'Importing...' : 'Import'}
         </button>

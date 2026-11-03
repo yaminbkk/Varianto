@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Color } from '../../domain/repertoire/tree'
+import ActionError from '../ActionError'
 import ImportPgn from '../ImportPgn'
 import OpeningPicker from '../OpeningPicker'
 import { repertoirePath } from '../paths'
@@ -16,6 +17,7 @@ export default function HomePage() {
   const loadList = useAppStore((s) => s.loadList)
   const create = useAppStore((s) => s.create)
 
+  const navigate = useNavigate()
   const baseId = useId()
   const nameId = `${baseId}-name`
   const nameErrorId = `${baseId}-name-error`
@@ -29,6 +31,8 @@ export default function HomePage() {
   const [color, setColor] = useState<Color>('white')
   const [nameError, setNameError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [createFailed, setCreateFailed] = useState(false)
+  const [panelFailed, setPanelFailed] = useState(false)
 
   // rename and setColor do not refresh the list, so always reload on mount.
   useEffect(() => {
@@ -47,6 +51,7 @@ export default function HomePage() {
   }, [loadList])
 
   function togglePanel(next: Exclude<Panel, null>) {
+    setPanelFailed(false)
     setPanel((current) => (current === next ? null : next))
   }
 
@@ -65,10 +70,15 @@ export default function HomePage() {
     }
     setNameError('')
     setBusy(true)
+    setCreateFailed(false)
     const id = await create(name.trim(), color)
     setBusy(false)
-    if (id !== '') setName('')
+    if (id === '') setCreateFailed(true)
+    else void navigate(repertoirePath(id))
   }
+
+  // Errors from an action a form or panel owns are shown there, not in the top banner.
+  const ownedError = createFailed || panelFailed
 
   const actions = (
     <div className="actions">
@@ -101,8 +111,10 @@ export default function HomePage() {
         <p className="hint">A free, local-first chess opening trainer.</p>
 
         <div className="alerts" role="alert">
-          {error && <p className="alert">{error}</p>}
-          {saveError && <p className="alert">Changes are not saved. Check browser storage.</p>}
+          {!ownedError && error && <p className="alert">{error}</p>}
+          {!ownedError && saveError && (
+            <p className="alert">Changes are not saved. Check browser storage.</p>
+          )}
           {loadFailed && (
             <p className="alert">Your repertoires could not be loaded. Check browser storage.</p>
           )}
@@ -134,8 +146,8 @@ export default function HomePage() {
           )}
         </section>
 
-        {panel === 'opening' && <OpeningPicker />}
-        {panel === 'import' && <ImportPgn />}
+        {panel === 'opening' && <OpeningPicker onFailure={setPanelFailed} />}
+        {panel === 'import' && <ImportPgn onFailure={setPanelFailed} />}
 
         <section className="panel" aria-labelledby={`${baseId}-new`}>
           <h2 id={`${baseId}-new`}>New repertoire</h2>
@@ -160,6 +172,7 @@ export default function HomePage() {
               )}
             </div>
             <SideField name="new-side" value={color} onChange={setColor} />
+            <ActionError failed={createFailed} />
             <button type="submit" className="btn btn-primary" disabled={busy}>
               Create repertoire
             </button>
