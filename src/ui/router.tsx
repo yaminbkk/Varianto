@@ -6,6 +6,7 @@ import { ProgressProvider } from './ProgressContext'
 import { StoreProvider } from './StoreContext'
 import type { AppState } from './store/appStore'
 import HomePage from './pages/HomePage'
+import ErrorPage from './pages/ErrorPage'
 import NotFoundPage from './pages/NotFoundPage'
 import BoardPage from './pages/BoardPage'
 import OpeningPage from './pages/OpeningPage'
@@ -19,6 +20,7 @@ const lessonRoute = `${learnPath}/:courseId/play`
 export function createAppRouter(store: StoreApi<AppState>, progress: ProgressStore) {
   return createHashRouter([
     {
+      errorElement: <ErrorPage />,
       element: (
         <StoreProvider store={store}>
           <ProgressProvider progress={progress}>
