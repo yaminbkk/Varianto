@@ -3,7 +3,14 @@ import library from '../../data/openings.json'
 import hidden from '../../data/hidden-courses.json'
 import type { OpeningLine } from '../openings/types'
 import { coursesFrom, type Course } from './courses'
-import { CATEGORIES, firstMove, inCategory } from './categories'
+import {
+  CATEGORIES,
+  MOVE_CATEGORIES,
+  SIDE_CATEGORIES,
+  filterCourses,
+  firstMove,
+  inCategory,
+} from './categories'
 import { visibleCourses } from './visibleCourses'
 
 function courseOf(name: string, pgn: string): Course {
@@ -83,5 +90,36 @@ describe('the real library', () => {
     for (const course of courses) {
       expect(inCategory(course, 'white')).not.toBe(inCategory(course, 'black'))
     }
+  })
+})
+
+describe('filterCourses', () => {
+  const all = [italian, sicilian, queens, indian, english, reti]
+  const names = (side: 'white' | 'black' | null, move: 'e4' | 'd4' | 'others' | null) =>
+    filterCourses(all, side, move).map((c) => c.name)
+
+  it('splits the categories into the side level and the first-move level', () => {
+    expect(SIDE_CATEGORIES).toEqual(['white', 'black'])
+    expect(MOVE_CATEGORIES).toEqual(['e4', 'd4', 'others'])
+  })
+
+  it('returns everything without a filter', () => {
+    expect(names(null, null)).toEqual(all.map((c) => c.name))
+  })
+
+  it('filters by side first', () => {
+    expect(names('white', null)).toEqual(['Italian Game', "Queen's Gambit", 'English Opening'])
+  })
+
+  it('then narrows the chosen side by first move', () => {
+    expect(names('white', 'e4')).toEqual(['Italian Game'])
+    expect(names('black', 'e4')).toEqual(['Sicilian Defense'])
+    expect(names('black', 'd4')).toEqual(["King's Indian Defense"])
+    expect(names('white', 'others')).toEqual(['English Opening'])
+    expect(names('black', 'others')).toEqual(['Reti Opening'])
+  })
+
+  it('can filter by first move alone', () => {
+    expect(names(null, 'e4')).toEqual(['Italian Game', 'Sicilian Defense'])
   })
 })
