@@ -11,3 +11,19 @@ export function sanFromSquares(fen: string, from: string, to: string): string | 
     return null
   }
 }
+
+/** Legal target squares for each movable square in the position `fen`. */
+export function legalDests(fen: string): Map<string, string[]> {
+  const dests = new Map<string, string[]>()
+  for (const move of new Chess(fen).moves({ verbose: true })) {
+    const targets = dests.get(move.from)
+    if (targets) targets.push(move.to)
+    else dests.set(move.from, [move.to])
+  }
+  return dests
+}
+
+/** The side whose turn it is in the position `fen`. */
+export function sideToMove(fen: string): 'white' | 'black' {
+  return fen.split(' ')[1] === 'b' ? 'black' : 'white'
+}
