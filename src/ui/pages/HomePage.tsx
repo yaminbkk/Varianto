@@ -5,7 +5,6 @@ import ActionError from '../ActionError'
 import ImportPgn from '../ImportPgn'
 import OpeningPicker from '../OpeningPicker'
 import { learnPath, openingsPath, repertoirePath } from '../paths'
-import { Brand } from '../Logo'
 import SideField from '../SideField'
 import SkipLink from '../SkipLink'
 import { SAVE_ERROR_MESSAGE, failureMessage, useAppStore, useStoreSnapshot } from '../useAppStore'
@@ -110,9 +109,7 @@ export default function HomePage() {
       <SkipLink targetRef={mainRef} />
       <main id="main" ref={mainRef} tabIndex={-1} className="app">
         <header className="hero">
-          <h1>
-            <Brand size={44} />
-          </h1>
+          <h1>Learn every opening</h1>
           <p className="hint">
             A free, local-first chess opening trainer. Learn every opening and variation, and build
             your own repertoire.

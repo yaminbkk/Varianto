@@ -6,8 +6,7 @@ import { visibleCourses } from '../../domain/learn/visibleCourses'
 import hiddenCourses from '../../data/hidden-courses.json'
 import { ecoFamily } from '../../domain/openings/ecoFamily'
 import MiniBoard from '../MiniBoard'
-import { homePath, coursePath } from '../paths'
-import { LogoMark } from '../Logo'
+import { coursePath } from '../paths'
 import SkipLink from '../SkipLink'
 import { useCourses } from '../useCourses'
 import { useProgress } from '../useProgress'
@@ -46,16 +45,6 @@ export default function LearnCatalogPage() {
     <>
       <SkipLink targetRef={mainRef} />
       <main id="main" ref={mainRef} tabIndex={-1} className="app">
-        <p className="topbar">
-          <Link
-            className="brand-link"
-            to={homePath}
-            aria-label="Varianto, back to your repertoires"
-          >
-            <LogoMark size={28} />
-            <span>Varianto</span>
-          </Link>
-        </p>
         <header className="hero">
           <h1>Learn openings</h1>
           <p className="hint">Pick an opening and play its moves. Mistakes cost nothing.</p>

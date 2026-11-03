@@ -6,6 +6,7 @@ import { ProgressProvider } from './ProgressContext'
 import { StoreProvider } from './StoreContext'
 import type { AppState } from './store/appStore'
 import HomePage from './pages/HomePage'
+import AppHeader from './AppHeader'
 import ErrorPage from './pages/ErrorPage'
 import NotFoundPage from './pages/NotFoundPage'
 import BoardPage from './pages/BoardPage'
@@ -24,6 +25,7 @@ export function createAppRouter(store: StoreApi<AppState>, progress: ProgressSto
       element: (
         <StoreProvider store={store}>
           <ProgressProvider progress={progress}>
+            <AppHeader />
             <Outlet />
           </ProgressProvider>
         </StoreProvider>

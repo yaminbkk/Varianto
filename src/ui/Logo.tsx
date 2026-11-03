@@ -25,13 +25,3 @@ export function LogoMark({ size = 40 }: { size?: number }) {
     </svg>
   )
 }
-
-/** The mark followed by the name, for use inside a heading or link. */
-export function Brand({ size = 40 }: { size?: number }) {
-  return (
-    <span className="brand">
-      <LogoMark size={size} />
-      <span>Varianto</span>
-    </span>
-  )
-}
