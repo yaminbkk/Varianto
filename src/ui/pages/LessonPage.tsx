@@ -94,6 +94,8 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
   const progress = useProgress()
   const [learned, setLearned] = useState<ReadonlySet<string> | null>(null)
   const [lineKey, setLineKey] = useState<string | null | undefined>(undefined)
+  // Lines finished with Solve this visit: they do not count as learned, but Next line moves past them.
+  const [skipped, setSkipped] = useState<ReadonlySet<string>>(new Set())
 
   useEffect(() => {
     let alive = true
@@ -126,7 +128,11 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
     return (
       <Shell>
         <h1>{course.name}</h1>
-        <p role="status">Course complete at this depth.</p>
+        <p role="status">
+          {skipped.size > 0
+            ? 'No more new lines at this depth. Lines you finished with Solve are not counted yet.'
+            : 'Course complete at this depth.'}
+        </p>
         <Link className="btn btn-primary" to={coursePath(course.id)}>
           Back to course
         </Link>
@@ -154,7 +160,13 @@ function Runner({ course, depth, side }: { course: Course; depth: Depth; side: C
       side={side}
       learned={learned}
       onLearned={onLearned}
-      onNext={(nextLearned) => setLineKey(nextLine(course, depth, side, nextLearned)?.key ?? null)}
+      onNext={(nextLearned, solvedKey) => {
+        const nextSkipped = solvedKey ? new Set([...skipped, solvedKey]) : skipped
+        setSkipped(nextSkipped)
+        setLineKey(
+          nextLine(course, depth, side, new Set([...nextLearned, ...nextSkipped]))?.key ?? null,
+        )
+      }}
     />
   )
 }
@@ -174,7 +186,7 @@ function Session({
   side: Color
   learned: ReadonlySet<string>
   onLearned: (key: string) => Promise<void>
-  onNext: (learned: ReadonlySet<string>) => void
+  onNext: (learned: ReadonlySet<string>, solvedKey: string | null) => void
 }) {
   const mainRef = useRef<HTMLElement>(null)
   const sans = sanSequence(line.line.pgn).split(' ')
@@ -288,11 +300,7 @@ function Session({
                     type="button"
                     className="btn btn-primary"
                     onClick={() =>
-                      onNext(
-                        lesson.solved || !learned.has(line.key)
-                          ? addKey(learned, lesson, line.key)
-                          : learned,
-                      )
+                      onNext(addKey(learned, lesson, line.key), lesson.solved ? line.key : null)
                     }
                   >
                     Next line

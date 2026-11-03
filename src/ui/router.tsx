@@ -10,9 +10,6 @@ import NotFoundPage from './pages/NotFoundPage'
 import BoardPage from './pages/BoardPage'
 import OpeningPage from './pages/OpeningPage'
 import OpeningsPage from './pages/OpeningsPage'
-import LearnCatalogPage from './pages/LearnCatalogPage'
-import CoursePage from './pages/CoursePage'
-import LessonPage from './pages/LessonPage'
 
 const repertoireRoute = '/r/:id'
 const openingRoute = `${openingsPath}/:key`
@@ -34,9 +31,18 @@ export function createAppRouter(store: StoreApi<AppState>, progress: ProgressSto
         { path: repertoireRoute, element: <BoardPage /> },
         { path: openingsPath, element: <OpeningsPage /> },
         { path: openingRoute, element: <OpeningPage /> },
-        { path: learnPath, element: <LearnCatalogPage /> },
-        { path: courseRoute, element: <CoursePage /> },
-        { path: lessonRoute, element: <LessonPage /> },
+        {
+          path: learnPath,
+          lazy: async () => ({ Component: (await import('./pages/LearnCatalogPage')).default }),
+        },
+        {
+          path: courseRoute,
+          lazy: async () => ({ Component: (await import('./pages/CoursePage')).default }),
+        },
+        {
+          path: lessonRoute,
+          lazy: async () => ({ Component: (await import('./pages/LessonPage')).default }),
+        },
         { path: '*', element: <NotFoundPage /> },
       ],
     },
