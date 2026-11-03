@@ -11,18 +11,29 @@ export const DEPTH_MAX_PLIES: Record<Depth, number> = {
   full: Infinity,
 }
 
-/** How many of a line's plies the learner plays: White plays plies 1, 3, ..., Black plies 2, 4, .... */
-export function learnerMoves(plies: number, side: Color): number {
-  return side === 'white' ? Math.ceil(plies / 2) : Math.floor(plies / 2)
+/**
+ * The side a line is for: the one that played its last move. The last move is where a line
+ * departs from its family (for example "Italian Game: Paris Defense" ends on Black's ...d6),
+ * so that side is the one who needs to learn it.
+ */
+export function lineOwner(plies: number): Color {
+  return plies % 2 === 1 ? 'white' : 'black'
 }
 
-/** Lines within the depth where the learner has at least one move, shortest first. */
+/** The learner's own lines within the depth, shortest first. */
 export function linesFor(course: Course, depth: Depth, side: Color): CourseLine[] {
   return course.lines
-    .filter((l) => l.plies <= DEPTH_MAX_PLIES[depth] && learnerMoves(l.plies, side) >= 1)
+    .filter((l) => l.plies <= DEPTH_MAX_PLIES[depth] && lineOwner(l.plies) === side)
     .map((l, order) => ({ l, order }))
     .sort((a, b) => a.l.plies - b.l.plies || a.order - b.order)
     .map(({ l }) => l)
+}
+
+/** The side with more lines in the course, White when equal. */
+export function defaultSide(course: Course): Color {
+  const white = linesFor(course, 'full', 'white').length
+  const black = linesFor(course, 'full', 'black').length
+  return black > white ? 'black' : 'white'
 }
 
 /** The depths worth offering: each adds lines over the previous one. Empty when nothing is learnable. */

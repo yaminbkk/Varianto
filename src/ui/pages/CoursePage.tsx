@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Course } from '../../domain/learn/courses'
-import { depthChoices, linesFor, type Depth } from '../../domain/learn/depth'
+import { defaultSide, depthChoices, linesFor, type Depth } from '../../domain/learn/depth'
 import { courseProgress } from '../../domain/learn/nextLine'
 import type { OpeningDescription } from '../../domain/openings/describe'
 import type { Color } from '../../domain/repertoire/tree'
@@ -66,7 +66,7 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
   const progress = useProgress()
   const mainRef = useRef<HTMLElement>(null)
   const depthName = useId()
-  const [side, setSide] = useState<Color>('white')
+  const [side, setSide] = useState<Color>(() => defaultSide(course))
   const [depthPick, setDepthPick] = useState<Depth | null>(null)
   const [learned, setLearned] = useState<ReadonlySet<string>>(new Set())
   const [description, setDescription] = useState<OpeningDescription | null>(null)
@@ -131,7 +131,10 @@ function CourseView({ course, back }: { course: Course; back: React.ReactNode })
           <h2 id={`${depthName}-title`}>Set up your lesson</h2>
           <SideField name="course-side" value={side} onChange={setSide} />
           {depth === null ? (
-            <p>This course has no lines you can play as {side === 'white' ? 'White' : 'Black'}.</p>
+            <p>
+              This course has no lines for {side === 'white' ? 'White' : 'Black'}. Try the other
+              side.
+            </p>
           ) : (
             <>
               <fieldset className="field">
