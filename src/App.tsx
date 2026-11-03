@@ -1,11 +1,12 @@
-function App() {
-  return (
-    <main className="app">
-      <h1>Varianto</h1>
-      <p>A free, local-first chess opening trainer.</p>
-      <p className="status">Early development: nothing is usable yet.</p>
-    </main>
-  )
+import { useState } from 'react'
+import { RouterProvider } from 'react-router-dom'
+import type { StoreApi } from 'zustand'
+import { createAppRouter } from './ui/router'
+import type { AppState } from './ui/store/appStore'
+
+function App({ store }: { store: StoreApi<AppState> }) {
+  const [router] = useState(() => createAppRouter(store))
+  return <RouterProvider router={router} />
 }
 
 export default App
