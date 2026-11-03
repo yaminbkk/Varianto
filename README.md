@@ -55,3 +55,7 @@ Varianto does not collect analytics and does not send your repertoire anywhere. 
 ## License
 
 Varianto is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only). Dependencies such as chessground are GPL-3.0-or-later, which is why this project uses the same license.
+
+## Credits
+
+The opening library is built from the [lichess-org/chess-openings](https://github.com/lichess-org/chess-openings) dataset, released under CC0-1.0. See [data/openings/SOURCE.md](data/openings/SOURCE.md) for the pinned commit and details.
