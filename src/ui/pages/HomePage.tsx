@@ -134,64 +134,66 @@ export default function HomePage() {
           )}
         </div>
 
-        <section aria-labelledby={`${baseId}-list`}>
-          <h2 id={`${baseId}-list`}>Your repertoires</h2>
-          {!loaded && !loadFailed ? (
-            <p className="hint">Loading...</p>
-          ) : summaries.length === 0 ? (
-            <div className="empty">
-              <p>No repertoires yet. Start from a known opening or import your own PGN.</p>
-              {actions}
-            </div>
-          ) : (
-            <>
-              <ul className="rep-list">
-                {summaries.map((s) => (
-                  <li key={s.id}>
-                    <Link to={repertoirePath(s.id)} className="rep-link">
-                      <span className="rep-name">{s.name}</span>
-                      <span className="badge">{s.color === 'white' ? 'White' : 'Black'}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {actions}
-            </>
-          )}
-        </section>
+        <div className="home-grid">
+          <section aria-labelledby={`${baseId}-list`}>
+            <h2 id={`${baseId}-list`}>Your repertoires</h2>
+            {!loaded && !loadFailed ? (
+              <p className="hint">Loading...</p>
+            ) : summaries.length === 0 ? (
+              <div className="empty">
+                <p>No repertoires yet. Start from a known opening or import your own PGN.</p>
+                {actions}
+              </div>
+            ) : (
+              <>
+                <ul className="rep-list">
+                  {summaries.map((s) => (
+                    <li key={s.id}>
+                      <Link to={repertoirePath(s.id)} className="rep-link">
+                        <span className="rep-name">{s.name}</span>
+                        <span className="badge">{s.color === 'white' ? 'White' : 'Black'}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                {actions}
+              </>
+            )}
+          </section>
+
+          <section className="panel" aria-labelledby={`${baseId}-new`}>
+            <h2 id={`${baseId}-new`}>New repertoire</h2>
+            <form onSubmit={(e) => void onCreate(e)} noValidate>
+              <div className="field">
+                <label htmlFor={nameId}>Name</label>
+                <input
+                  id={nameId}
+                  ref={nameRef}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  aria-required="true"
+                  aria-invalid={nameError !== ''}
+                  aria-describedby={nameError ? nameErrorId : undefined}
+                  autoComplete="off"
+                />
+                {nameError && (
+                  <p id={nameErrorId} className="field-error" role="alert">
+                    {nameError}
+                  </p>
+                )}
+              </div>
+              <SideField name="new-side" value={color} onChange={setColor} />
+              <ActionError message={createMessage} />
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                Create repertoire
+              </button>
+            </form>
+          </section>
+        </div>
 
         {panel === 'opening' && <OpeningPicker message={panelMessage} onFailure={reportPanel} />}
         {panel === 'import' && <ImportPgn message={panelMessage} onFailure={reportPanel} />}
-
-        <section className="panel" aria-labelledby={`${baseId}-new`}>
-          <h2 id={`${baseId}-new`}>New repertoire</h2>
-          <form onSubmit={(e) => void onCreate(e)} noValidate>
-            <div className="field">
-              <label htmlFor={nameId}>Name</label>
-              <input
-                id={nameId}
-                ref={nameRef}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                aria-required="true"
-                aria-invalid={nameError !== ''}
-                aria-describedby={nameError ? nameErrorId : undefined}
-                autoComplete="off"
-              />
-              {nameError && (
-                <p id={nameErrorId} className="field-error" role="alert">
-                  {nameError}
-                </p>
-              )}
-            </div>
-            <SideField name="new-side" value={color} onChange={setColor} />
-            <ActionError message={createMessage} />
-            <button type="submit" className="btn btn-primary" disabled={busy}>
-              Create repertoire
-            </button>
-          </form>
-        </section>
       </main>
     </>
   )

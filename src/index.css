@@ -69,9 +69,9 @@ body {
 }
 
 .app {
-  max-width: 40rem;
+  max-width: 80rem;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem);
 }
 
 h1,
@@ -360,7 +360,7 @@ div.alert p {
 }
 
 .app-wide {
-  max-width: 64rem;
+  max-width: 80rem;
 }
 
 .board-layout {
@@ -692,4 +692,44 @@ progress {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
+}
+
+/* Use the width of larger screens */
+.hero .hint {
+  max-width: 44rem;
+}
+
+.app > .panel {
+  max-width: 44rem;
+}
+
+.home-grid {
+  display: grid;
+  gap: 1.5rem 2rem;
+  align-items: start;
+}
+
+.home-grid > section {
+  min-width: 0;
+  margin-top: 0;
+}
+
+@media (min-width: 56rem) {
+  .home-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+
+.home-grid + .panel {
+  margin-top: 1.5rem;
+}
+
+.course-grid {
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+}
+
+@media (min-width: 80rem) {
+  .board-layout {
+    grid-template-columns: minmax(0, 1fr) 24rem;
+  }
 }
