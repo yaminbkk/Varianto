@@ -116,6 +116,7 @@ describe('DexieProgressStore reviews', () => {
 
 describe('DexieProgressStore drills', () => {
   const result = { passed: 3, failed: 1, durationMs: 60_000, elapsedMs: 42_000 }
+  const now = new Date('2026-11-03T12:00:00Z')
 
   it('lists drill results newest first', async () => {
     const { store } = freshStore()

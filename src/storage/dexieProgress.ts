@@ -1,5 +1,7 @@
+import type { DrillResult } from '../domain/learn/drill'
+import type { ReviewCard } from '../domain/learn/review'
 import type { VariantoDb } from './db'
-import type { ProgressStore } from './progress'
+import type { DrillRecord, ProgressStore } from './progress'
 
 export class DexieProgressStore implements ProgressStore {
   private readonly db: VariantoDb
@@ -26,6 +28,36 @@ export class DexieProgressStore implements ProgressStore {
   }
 
   async reset(courseId: string): Promise<void> {
-    await this.db.learned.where('courseId').equals(courseId).delete()
+    await this.db.transaction('rw', this.db.learned, this.db.reviews, this.db.drills, async () => {
+      await this.db.learned.where('courseId').equals(courseId).delete()
+      await this.db.reviews.where('courseId').equals(courseId).delete()
+      await this.db.drills.where('courseId').equals(courseId).delete()
+    })
+  }
+
+  async reviewCards(courseId: string): Promise<Map<string, ReviewCard>> {
+    const rows = await this.db.reviews.where('courseId').equals(courseId).toArray()
+    return new Map(rows.map((r) => [r.lineKey, r.card]))
+  }
+
+  async saveReview(courseId: string, lineKey: string, card: ReviewCard): Promise<void> {
+    await this.db.reviews.put({ courseId, lineKey, card })
+  }
+
+  async addDrillResult(courseId: string, result: DrillResult, at: number): Promise<void> {
+    await this.db.drills.add({ ...result, courseId, at })
+  }
+
+  async drillResults(courseId: string): Promise<DrillRecord[]> {
+    const rows = await this.db.drills.where('courseId').equals(courseId).toArray()
+    return rows
+      .sort((a, b) => b.at - a.at)
+      .map((r) => ({
+        passed: r.passed,
+        failed: r.failed,
+        durationMs: r.durationMs,
+        elapsedMs: r.elapsedMs,
+        at: r.at,
+      }))
   }
 }
