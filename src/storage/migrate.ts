@@ -13,11 +13,13 @@ export interface CopySummary {
 
 /**
  * Copies every repertoire and all learn progress from one backend into another, for example
- * from the guest's browser into a new account. The source is not changed, and copying twice
- * leaves the target as it is after the first time.
+ * from the guest's browser into a new account. The source is not changed. Anything
+ * the target already has is kept, so copying twice never overwrites newer work.
  */
 export async function copyLocalToAccount(from: Backend, to: Backend): Promise<CopySummary> {
-  const reps = await from.repertoires.loadAll()
+  // Repertoires and cards the target already has are newer than the guest's copies: keep them.
+  const have = new Set((await to.repertoires.list()).map((r) => r.id))
+  const reps = (await from.repertoires.loadAll()).filter((rep) => !have.has(rep.id))
   if (reps.length > 0) await to.repertoires.saveMany(reps)
 
   // Reviews and drills only exist for courses that have learned lines.
@@ -28,8 +30,9 @@ export async function copyLocalToAccount(from: Backend, to: Backend): Promise<Co
     for (const lineKey of learned) await to.progress.markLearned(courseId, lineKey)
     lines += learned.size
 
+    const cards = await to.progress.reviewCards(courseId)
     for (const [lineKey, card] of await from.progress.reviewCards(courseId)) {
-      await to.progress.saveReview(courseId, lineKey, card)
+      if (!cards.has(lineKey)) await to.progress.saveReview(courseId, lineKey, card)
     }
 
     const existing = new Set(
