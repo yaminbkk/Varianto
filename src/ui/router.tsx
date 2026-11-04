@@ -1,9 +1,11 @@
 import { createHashRouter, Outlet } from 'react-router-dom'
 import type { StoreApi } from 'zustand'
-import { homePath, learnPath, openingsPath } from './paths'
+import { accountPath, homePath, learnPath, openingsPath } from './paths'
 import type { ProgressStore } from '../storage/progress'
 import { ProgressProvider } from './ProgressContext'
+import { AccountProvider } from './AccountProvider'
 import { StoreProvider } from './StoreContext'
+import type { Account } from './useAccount'
 import type { AppState } from './store/appStore'
 import HomePage from './pages/HomePage'
 import AppHeader from './AppHeader'
@@ -20,17 +22,23 @@ const lessonRoute = `${learnPath}/:courseId/play`
 const practiceRoute = `${learnPath}/:courseId/practice`
 const drillRoute = `${learnPath}/:courseId/drill`
 
-export function createAppRouter(store: StoreApi<AppState>, progress: ProgressStore) {
+export function createAppRouter(
+  store: StoreApi<AppState>,
+  progress: ProgressStore,
+  account: Account,
+) {
   return createHashRouter([
     {
       errorElement: <ErrorPage />,
       element: (
-        <StoreProvider store={store}>
-          <ProgressProvider progress={progress}>
-            <AppHeader />
-            <Outlet />
-          </ProgressProvider>
-        </StoreProvider>
+        <AccountProvider account={account}>
+          <StoreProvider store={store}>
+            <ProgressProvider progress={progress}>
+              <AppHeader />
+              <Outlet />
+            </ProgressProvider>
+          </StoreProvider>
+        </AccountProvider>
       ),
       children: [
         { path: homePath, element: <HomePage /> },
@@ -56,6 +64,10 @@ export function createAppRouter(store: StoreApi<AppState>, progress: ProgressSto
         {
           path: drillRoute,
           lazy: async () => ({ Component: (await import('./pages/DrillPage')).default }),
+        },
+        {
+          path: accountPath,
+          lazy: async () => ({ Component: (await import('./pages/AccountPage')).default }),
         },
         { path: '*', element: <NotFoundPage /> },
       ],
