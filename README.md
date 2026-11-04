@@ -6,7 +6,7 @@ A free and open-source chess opening trainer. Build your own repertoire, then dr
 
 ## Goals
 
-- **Local-first.** Your data lives in your browser (IndexedDB). No account, no server, no trackers, no payments.
+- **Local-first.** Your data lives in your browser (IndexedDB). No account needed, no trackers, no payments. An optional account (Supabase) syncs your data across devices.
 - **Your repertoire.** Create lines for White or Black, branch them, add comments, import and export PGN.
 - **Practice that sticks.** Spaced repetition (FSRS) schedules each position. Wrong moves are not punished: you can try again or undo.
 - **Always portable.** Export and import all your data as JSON at any time.
@@ -26,15 +26,15 @@ Later: learn mode with explanations, Stockfish eval bar (WASM, optional), drill 
 
 ## Tech stack
 
-| Area              | Choice                                                       |
-| ----------------- | ------------------------------------------------------------ |
-| App               | Vite, React, TypeScript (strict)                             |
-| Board             | [chessground](https://github.com/lichess-org/chessground)    |
-| Rules and PGN     | [chess.js](https://github.com/jhlywa/chess.js)               |
-| Spaced repetition | [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) |
-| Storage           | IndexedDB via [Dexie](https://dexie.org)                     |
-| State and routing | Zustand, React Router                                        |
-| Tests             | Vitest                                                       |
+| Area              | Choice                                                                              |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| App               | Vite, React, TypeScript (strict)                                                    |
+| Board             | [chessground](https://github.com/lichess-org/chessground)                           |
+| Rules and PGN     | [chess.js](https://github.com/jhlywa/chess.js)                                      |
+| Spaced repetition | [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)                        |
+| Storage           | IndexedDB via [Dexie](https://dexie.org); optional [Supabase](https://supabase.com) |
+| State and routing | Zustand, React Router                                                               |
+| Tests             | Vitest                                                                              |
 
 ## Development
 
@@ -50,7 +50,7 @@ npm test        # vitest
 
 ## Privacy
 
-Varianto does not collect analytics and does not send your repertoire anywhere. Anything that would change that is out of scope.
+Varianto does not collect analytics. As a guest it makes no network calls and your repertoire never leaves the browser. If you choose to sign in, your repertoires and progress are stored in your Supabase account and nowhere else. See [docs/deploy.md](docs/deploy.md).
 
 ## License
 

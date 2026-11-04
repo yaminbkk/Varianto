@@ -50,4 +50,5 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 
 - Done: scaffold; `domain/repertoire` (commit `45d945b`); `domain/pgn` (commit `170b1ee`); guest `storage` with Dexie, the `RepertoireStore` interface, and JSON export/import (commits `938cc39`..`d583388`, branch `feature/guest-storage`, Phase 1 item 4). Design: `docs/superpowers/specs/2026-11-03-storage-design.md`.
 - Next: Phase 2, item 5 (board page, move play, move list).
-- Later: login with Supabase sync, as its own brainstorm and design (auth, Row Level Security, moving guest data into an account).
+- Done on branch `feature/supabase-sync`: optional login with Supabase sync (design `docs/superpowers/specs/2026-11-04-supabase-sync-design.md`, plan `docs/superpowers/plans/2026-11-04-supabase-sync.md`), migration in `supabase/migrations/`, Pages workflow, `docs/deploy.md`.
+- Next: create the Supabase project and run the migration, set the repository variables, merge to `main`, push (needs the owner).
