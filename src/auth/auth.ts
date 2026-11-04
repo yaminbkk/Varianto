@@ -26,6 +26,31 @@ export type SupabaseLoader = () => Promise<{
 /** Loads the library on demand so guests never download it. */
 export const loadSupabase: SupabaseLoader = () => import('@supabase/supabase-js')
 
+/**
+ * True when this browser may hold a Supabase session: the library stores its token under a key
+ * like `sb-<project>-auth-token`, and an email confirmation link lands with `#access_token=`.
+ * Visitors with neither are guests and never need the library.
+ */
+export function hasStoredSession(
+  storage: { length: number; key(index: number): string | null },
+  hash: string,
+): boolean {
+  if (hash.includes('access_token=')) return true
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i)
+    if (key && /^sb-.+-auth-token$/.test(key)) return true
+  }
+  return false
+}
+
+function browserHasSession(): boolean {
+  try {
+    return hasStoredSession(window.localStorage, window.location.hash)
+  } catch {
+    return false
+  }
+}
+
 interface SessionLike {
   user: { id: string; email?: string }
 }
@@ -37,6 +62,7 @@ function toUser(session: SessionLike | null | undefined): User | undefined {
 export function createAuthService(
   env: { url?: string; anonKey?: string },
   load: SupabaseLoader = loadSupabase,
+  hasSession: () => boolean = browserHasSession,
 ): AuthService {
   const { url, anonKey } = env
   const enabled = Boolean(url && anonKey)
@@ -53,7 +79,7 @@ export function createAuthService(
     client,
 
     async currentUser() {
-      if (!enabled) return undefined
+      if (!enabled || !hasSession()) return undefined
       const { data } = await (await client()).auth.getSession()
       return toUser(data.session)
     },
@@ -75,7 +101,7 @@ export function createAuthService(
     },
 
     onChange(listener) {
-      if (!enabled) return () => {}
+      if (!enabled || !hasSession()) return () => {}
       let stopped = false
       let subscription: { unsubscribe(): void } | undefined
       void client().then((c) => {
