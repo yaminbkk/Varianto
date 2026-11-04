@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  accountPath,
   coursePath,
   drillPath,
   homePath,
@@ -41,5 +42,9 @@ describe('route paths', () => {
     expect(practicePath('italian-game')).toBe('/learn/italian-game/practice')
     expect(drillPath('italian-game')).toBe('/learn/italian-game/drill')
     expect(drillPath('a b')).toBe('/learn/a%20b/drill')
+  })
+
+  it('has a path for the account page', () => {
+    expect(accountPath).toBe('/account')
   })
 })
