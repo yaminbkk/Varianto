@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { createBackends } from './app/backends'
 import { createAuthService } from './auth/auth'
+import { watchSession } from './auth/watchSession'
 import { VariantoDb } from './storage/db'
 import { DexieProgressStore } from './storage/dexieProgress'
 import { DexieRepertoireStore } from './storage/dexieStore'
@@ -30,6 +31,10 @@ if (user) {
     user = undefined
   }
 }
+
+// The stores were built for this user. If another tab signs out or signs in as someone else,
+// reload so this tab cannot write one account's data into another.
+if (user) watchSession(auth, user.id, () => window.location.reload())
 
 const store = createAppStore({
   store: backends.current.repertoires,
