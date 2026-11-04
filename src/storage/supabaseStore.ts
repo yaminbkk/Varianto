@@ -20,6 +20,9 @@ export interface RepertoireGateway {
 /** Repertoire storage in the user's Supabase account. */
 export class SupabaseRepertoireStore implements RepertoireStore {
   private readonly gateway: RepertoireGateway
+  // Saves replace whole trees, so two in flight at once could finish out of order and leave the
+  // older tree behind. Each save waits for the one before it.
+  private queue: Promise<unknown> = Promise.resolve()
 
   constructor(gateway: RepertoireGateway) {
     this.gateway = gateway
@@ -30,17 +33,20 @@ export class SupabaseRepertoireStore implements RepertoireStore {
   }
 
   saveMany(reps: Repertoire[]): Promise<void> {
-    return this.gateway.saveMany(reps.map(toRows))
+    const items = reps.map(toRows)
+    const run = this.queue.then(() => this.gateway.saveMany(items))
+    this.queue = run.catch(() => {})
+    return run
   }
 
   async load(id: string): Promise<Repertoire | undefined> {
     const item = await this.gateway.fetch(id)
-    return item ? fromRows(item.repertoire, item.nodes) : undefined
+    return item ? rebuild(item) : undefined
   }
 
   async loadAll(): Promise<Repertoire[]> {
     const items = await this.gateway.fetchAll()
-    return items.map((item) => fromRows(item.repertoire, item.nodes))
+    return items.map(rebuild)
   }
 
   async list(): Promise<RepertoireSummary[]> {
@@ -51,4 +57,21 @@ export class SupabaseRepertoireStore implements RepertoireStore {
   remove(id: string): Promise<void> {
     return this.gateway.remove(id)
   }
+}
+
+/**
+ * Rebuilds the tree, refusing one with missing nodes. A truncated tree handed to the editor
+ * would be saved back and the missing nodes lost for good.
+ */
+function rebuild(item: RepertoireItem): Repertoire {
+  const rep = fromRows(item.repertoire, item.nodes)
+  const missing =
+    !(rep.rootId in rep.nodes) ||
+    Object.values(rep.nodes).some(
+      (node) =>
+        node.childIds.some((id) => !(id in rep.nodes)) ||
+        (node.parentId !== null && !(node.parentId in rep.nodes)),
+    )
+  if (missing) throw new Error(`Repertoire "${rep.name}" is incomplete on the server`)
+  return rep
 }

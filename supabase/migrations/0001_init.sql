@@ -76,11 +76,13 @@ declare
   rep jsonb;
 begin
   for rep in select * from jsonb_array_elements(reps) loop
-    delete from nodes where repertoire_id = rep->>'id' and user_id = auth.uid();
+    -- The upsert comes first: it takes the repertoire's row lock, so a concurrent call for the
+    -- same repertoire waits here and then sees this call's committed nodes.
     insert into repertoires (id, name, color, root_id)
       values (rep->>'id', rep->>'name', rep->>'color', rep->>'rootId')
       on conflict (user_id, id) do update
         set name = excluded.name, color = excluded.color, root_id = excluded.root_id;
+    delete from nodes where repertoire_id = rep->>'id' and user_id = auth.uid();
     insert into nodes (repertoire_id, id, parent_id, san, fen, comment, child_ids)
       select rep->>'id', n->>'id', n->>'parentId', n->>'san', n->>'fen',
              coalesce(n->>'comment', ''),
