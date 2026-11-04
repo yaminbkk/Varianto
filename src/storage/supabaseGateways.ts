@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { DrillResult } from '../domain/learn/drill'
 import type { NodeRow, RepertoireRow } from './convert'
 import type { Backend } from './migrate'
+import { fetchAllPages } from './paging'
 import { SupabaseProgressStore, type CardJson, type ProgressGateway } from './supabaseProgress'
 import {
   SupabaseRepertoireStore,
@@ -51,6 +52,22 @@ const toNode = (r: NodeDbRow): NodeRow => ({
   childIds: r.child_ids,
 })
 
+const NODE_COLUMNS = 'repertoire_id,id,parent_id,san,fen,comment,child_ids'
+
+async function fetchHeaderRows(client: SupabaseClient): Promise<RepertoireDbRow[]> {
+  return fetchAllPages<RepertoireDbRow>(
+    async (from, to) =>
+      check<RepertoireDbRow[]>(
+        await client
+          .from('repertoires')
+          .select('id,name,color,root_id')
+          .order('name')
+          .order('id')
+          .range(from, to),
+      ) ?? [],
+  )
+}
+
 function group(headers: RepertoireDbRow[], nodes: NodeDbRow[]): RepertoireItem[] {
   return headers.map((h) => ({
     repertoire: toHeader(h),
@@ -83,30 +100,38 @@ export function repertoireGateway(client: SupabaseClient): RepertoireGateway {
         await client.from('repertoires').select('id,name,color,root_id').eq('id', id),
       )
       if (!headers || headers.length === 0) return undefined
-      const nodes = check<NodeDbRow[]>(
-        await client
-          .from('nodes')
-          .select('repertoire_id,id,parent_id,san,fen,comment,child_ids')
-          .eq('repertoire_id', id),
+      const nodes = await fetchAllPages<NodeDbRow>(
+        async (from, to) =>
+          check<NodeDbRow[]>(
+            await client
+              .from('nodes')
+              .select(NODE_COLUMNS)
+              .eq('repertoire_id', id)
+              .order('id')
+              .range(from, to),
+          ) ?? [],
       )
-      return group(headers, nodes ?? [])[0]
+      return group(headers, nodes)[0]
     },
 
     async fetchAll() {
-      const headers = check<RepertoireDbRow[]>(
-        await client.from('repertoires').select('id,name,color,root_id').order('name'),
+      const headers = await fetchHeaderRows(client)
+      const nodes = await fetchAllPages<NodeDbRow>(
+        async (from, to) =>
+          check<NodeDbRow[]>(
+            await client
+              .from('nodes')
+              .select(NODE_COLUMNS)
+              .order('repertoire_id')
+              .order('id')
+              .range(from, to),
+          ) ?? [],
       )
-      const nodes = check<NodeDbRow[]>(
-        await client.from('nodes').select('repertoire_id,id,parent_id,san,fen,comment,child_ids'),
-      )
-      return group(headers ?? [], nodes ?? [])
+      return group(headers, nodes)
     },
 
     async fetchHeaders() {
-      const headers = check<RepertoireDbRow[]>(
-        await client.from('repertoires').select('id,name,color,root_id').order('name'),
-      )
-      return (headers ?? []).map(toHeader)
+      return (await fetchHeaderRows(client)).map(toHeader)
     },
 
     async remove(id) {
@@ -130,10 +155,18 @@ export function progressGateway(client: SupabaseClient): ProgressGateway {
     },
 
     async listLearned(courseId) {
-      let query = client.from('learned').select('course_id,line_key')
-      if (courseId !== undefined) query = query.eq('course_id', courseId)
-      const rows = check<{ course_id: string; line_key: string }[]>(await query)
-      return (rows ?? []).map((r) => ({ courseId: r.course_id, lineKey: r.line_key }))
+      const rows = await fetchAllPages<{ course_id: string; line_key: string }>(
+        async (from, to) => {
+          let query = client.from('learned').select('course_id,line_key')
+          if (courseId !== undefined) query = query.eq('course_id', courseId)
+          return (
+            check<{ course_id: string; line_key: string }[]>(
+              await query.order('course_id').order('line_key').range(from, to),
+            ) ?? []
+          )
+        },
+      )
+      return rows.map((r) => ({ courseId: r.course_id, lineKey: r.line_key }))
     },
 
     async deleteCourse(courseId) {
@@ -165,10 +198,18 @@ export function progressGateway(client: SupabaseClient): ProgressGateway {
     },
 
     async listDrills(courseId) {
-      const rows = check<{ at: number; result: DrillResult }[]>(
-        await client.from('drills').select('at,result').eq('course_id', courseId),
+      const rows = await fetchAllPages<{ at: number; result: DrillResult }>(
+        async (from, to) =>
+          check<{ at: number; result: DrillResult }[]>(
+            await client
+              .from('drills')
+              .select('at,result')
+              .eq('course_id', courseId)
+              .order('id')
+              .range(from, to),
+          ) ?? [],
       )
-      return (rows ?? []).map((r) => ({ ...r.result, at: r.at }))
+      return rows.map((r) => ({ ...r.result, at: r.at }))
     },
   }
 }
