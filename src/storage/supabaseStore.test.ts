@@ -20,6 +20,9 @@ function memoryGateway(): RepertoireGateway & { items: Map<string, Item> } {
     async fetchAll() {
       return structuredClone([...items.values()])
     },
+    async fetchHeaders() {
+      return [...items.values()].map((item) => ({ ...item.repertoire }))
+    },
     async remove(id) {
       items.delete(id)
     },
