@@ -105,4 +105,56 @@ describe('SupabaseRepertoireStore', () => {
 
     expect(rep).toEqual(copy)
   })
+
+  it('applies overlapping saves in call order, so the later state wins', async () => {
+    const gateway = memoryGateway()
+    const inner = gateway.saveMany
+    let calls = 0
+    // The first call is slow, like a request that takes the longer route.
+    gateway.saveMany = async (list) => {
+      const wait = calls++ === 0 ? 20 : 0
+      await new Promise((resolve) => setTimeout(resolve, wait))
+      return inner(list)
+    }
+    const store = new SupabaseRepertoireStore(gateway)
+    const older = repertoire('r1', 'Older')
+    const newer = repertoire('r1', 'Newer')
+
+    await Promise.all([store.save(older), store.save(newer)])
+
+    expect((await store.load('r1'))!.name).toBe('Newer')
+  })
+
+  it('keeps saving after one save fails, and reports the failure to its caller', async () => {
+    const gateway = memoryGateway()
+    const inner = gateway.saveMany
+    let fail = true
+    gateway.saveMany = async (list) => {
+      if (fail) {
+        fail = false
+        throw new Error('network down')
+      }
+      return inner(list)
+    }
+    const store = new SupabaseRepertoireStore(gateway)
+
+    const first = store.save(repertoire('r1', 'First'))
+    const second = store.save(repertoire('r1', 'Second'))
+
+    await expect(first).rejects.toThrow('network down')
+    await second
+    expect((await store.load('r1'))!.name).toBe('Second')
+  })
+
+  it('refuses to load a tree with missing nodes instead of handing out a truncated one', async () => {
+    const gateway = memoryGateway()
+    const store = new SupabaseRepertoireStore(gateway)
+    const rep = repertoire()
+    await store.save(rep)
+    const item = gateway.items.get(rep.id)!
+    item.nodes = item.nodes.slice(0, item.nodes.length - 1)
+
+    await expect(store.load(rep.id)).rejects.toThrow(/incomplete/i)
+    await expect(store.loadAll()).rejects.toThrow(/incomplete/i)
+  })
 })

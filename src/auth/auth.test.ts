@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createAuthService, type SupabaseLoader } from './auth'
+import { createAuthService, hasStoredSession, type SupabaseLoader } from './auth'
 
 type Listener = (event: string, session: { user: { id: string; email?: string } } | null) => void
 
@@ -47,7 +47,7 @@ describe('createAuthService', () => {
 
   it('loads the library only on first use and creates the client once', async () => {
     const fake = fakeSupabase()
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
     expect(fake.load).not.toHaveBeenCalled()
 
     await auth.currentUser()
@@ -63,14 +63,14 @@ describe('createAuthService', () => {
         data: { session: { user: { id: 'u1', email: 'me@example.com' } } },
       })),
     })
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
 
     expect(await auth.currentUser()).toEqual({ id: 'u1', email: 'me@example.com' })
   })
 
   it('signs in with the given credentials and surfaces the server message on failure', async () => {
     const fake = fakeSupabase()
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
     await auth.signIn('me@example.com', 'secret')
     expect(fake.auth.signInWithPassword).toHaveBeenCalledWith({
       email: 'me@example.com',
@@ -85,7 +85,7 @@ describe('createAuthService', () => {
 
   it('reports whether sign-up needs email confirmation', async () => {
     const fake = fakeSupabase()
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
 
     expect(await auth.signUp('me@example.com', 'secret')).toEqual({ needsConfirmation: true })
 
@@ -98,7 +98,7 @@ describe('createAuthService', () => {
 
   it('tells listeners about the user and stops after unsubscribe', async () => {
     const fake = fakeSupabase()
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
     const seen: unknown[] = []
 
     const stop = auth.onChange((user) => seen.push(user))
@@ -113,11 +113,49 @@ describe('createAuthService', () => {
 
   it('does not subscribe at all when unsubscribed before the library has loaded', async () => {
     const fake = fakeSupabase()
-    const auth = createAuthService(env, fake.load)
+    const auth = createAuthService(env, fake.load, () => true)
 
     auth.onChange(() => {})()
     await auth.currentUser()
 
     expect(fake.auth.onAuthStateChange).not.toHaveBeenCalled()
+  })
+
+  it('does not load the library for a visitor with no stored session', async () => {
+    const fake = fakeSupabase()
+    const auth = createAuthService(env, fake.load, () => false)
+
+    expect(await auth.currentUser()).toBeUndefined()
+    auth.onChange(() => {})()
+
+    expect(fake.load).not.toHaveBeenCalled()
+  })
+
+  it('still loads the library to sign in when there is no stored session', async () => {
+    const fake = fakeSupabase()
+    const auth = createAuthService(env, fake.load, () => false)
+
+    await auth.signIn('me@example.com', 'secret')
+
+    expect(fake.load).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('hasStoredSession', () => {
+  const storage = (keys: string[]) => ({
+    length: keys.length,
+    key: (i: number) => keys[i] ?? null,
+  })
+
+  it('is true when Supabase left an auth token in storage', () => {
+    expect(hasStoredSession(storage(['theme', 'sb-abc123-auth-token']), '')).toBe(true)
+  })
+
+  it('is false when nothing of Supabase is stored', () => {
+    expect(hasStoredSession(storage(['theme', 'varianto-sound']), '')).toBe(false)
+  })
+
+  it('is true on the landing from an email confirmation link', () => {
+    expect(hasStoredSession(storage([]), '#access_token=abc&type=signup')).toBe(true)
   })
 })

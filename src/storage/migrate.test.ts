@@ -86,4 +86,20 @@ describe('copyLocalToAccount', () => {
     const summary = await copyLocalToAccount(stores(), stores())
     expect(summary).toEqual({ repertoires: 0, lines: 0 })
   })
+
+  it('does not overwrite repertoires or review cards that the account already has', async () => {
+    const from = stores()
+    const to = stores()
+    const rep = await seed(from)
+    await copyLocalToAccount(from, to)
+    const edited = { ...rep, name: 'Edited in the account' }
+    await to.repertoires.save(edited)
+    const later = schedule(card, 'good', new Date('2026-11-10T10:00:00Z'))
+    await to.progress.saveReview('italian-game', 'a', later)
+
+    await copyLocalToAccount(from, to)
+
+    expect((await to.repertoires.load(rep.id))!.name).toBe('Edited in the account')
+    expect((await to.progress.reviewCards('italian-game')).get('a')).toEqual(later)
+  })
 })
