@@ -20,7 +20,14 @@ function fakeSupabase(overrides: Record<string, unknown> = {}) {
   const client = { auth }
   const createClient = vi.fn(() => client)
   const load: SupabaseLoader = vi.fn(async () => ({ createClient })) as unknown as SupabaseLoader
-  return { auth, client, createClient, load, unsubscribe, emit: (...a: Parameters<Listener>) => listener?.(...a) }
+  return {
+    auth,
+    client,
+    createClient,
+    load,
+    unsubscribe,
+    emit: (...a: Parameters<Listener>) => listener?.(...a),
+  }
 }
 
 const env = { url: 'https://x.supabase.co', anonKey: 'anon' }
@@ -70,7 +77,9 @@ describe('createAuthService', () => {
       password: 'secret',
     })
 
-    fake.auth.signInWithPassword.mockResolvedValueOnce({ error: { message: 'Invalid login credentials' } } as never)
+    fake.auth.signInWithPassword.mockResolvedValueOnce({
+      error: { message: 'Invalid login credentials' },
+    } as never)
     await expect(auth.signIn('me@example.com', 'bad')).rejects.toThrow('Invalid login credentials')
   })
 
