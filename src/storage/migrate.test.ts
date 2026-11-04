@@ -27,7 +27,12 @@ const drill = { passed: 3, failed: 1, durationMs: 60000, elapsedMs: 42000 }
 
 async function seed(from: ReturnType<typeof stores>) {
   const ids = ['root', 'rep']
-  const rep = addMove(createRepertoire('Mine', 'white', () => ids.shift() ?? 'x'), 'root', 'e4', () => 'n1')
+  const rep = addMove(
+    createRepertoire('Mine', 'white', () => ids.shift() ?? 'x'),
+    'root',
+    'e4',
+    () => 'n1',
+  )
   await from.repertoires.save(rep.repertoire)
   await from.progress.markLearned('italian-game', 'a')
   await from.progress.markLearned('italian-game', 'b')
