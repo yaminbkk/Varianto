@@ -52,3 +52,4 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 - Next: Phase 2, item 5 (board page, move play, move list).
 - Done on branch `feature/supabase-sync`: optional login with Supabase sync (design `docs/superpowers/specs/2026-11-04-supabase-sync-design.md`, plan `docs/superpowers/plans/2026-11-04-supabase-sync.md`), migration in `supabase/migrations/`, Pages workflow, `docs/deploy.md`.
 - Next: create the Supabase project and run the migration, set the repository variables, merge to `main`, push (needs the owner).
+- Done on branch `feature/streak` (from `main`, independent of `feature/eval-bar`): daily streak in the header (design `docs/superpowers/specs/2026-11-05-streak-design.md`, plan `docs/superpowers/plans/2026-11-05-streak.md`). Needs `supabase/migrations/0002_activity.sql` for accounts.

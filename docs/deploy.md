@@ -5,7 +5,7 @@ Varianto is a static site. Guest mode needs nothing else. Accounts (optional) ne
 ## 1. Supabase (only if you want accounts)
 
 1. Create a project at supabase.com.
-2. Open the SQL editor and run `supabase/migrations/0001_init.sql`. It creates the tables, turns on Row Level Security, and adds `save_repertoires`.
+2. Open the SQL editor and run `supabase/migrations/0001_init.sql`. It creates the tables, turns on Row Level Security, and adds `save_repertoires`. Then run `supabase/migrations/0002_activity.sql`, which adds the `activity_days` table for the daily streak. Without it the app still works, but a signed-in learner's streak is not saved.
 3. Under Authentication, decide whether email confirmation is required. Varianto handles both.
 4. Under Authentication > URL configuration, add your site URL (for example `https://yaminbkk.github.io/Varianto/`).
 5. Copy the project URL and the anon (public) key from Project Settings > API. The anon key is safe to publish; Row Level Security protects the data. Never use the service-role key.
