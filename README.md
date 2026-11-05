@@ -22,7 +22,9 @@ A free and open-source chess opening trainer. Build your own repertoire, then dr
 6. Local storage with full JSON export and import
 7. Settings: board theme, sound, font size
 
-Later: learn mode with explanations, Stockfish eval bar (WASM, optional), drill modes, dashboard, PWA, i18n.
+Also available: learn mode with explanations, drill mode, and an optional Stockfish eval bar (see below).
+
+Later: dashboard, PWA, i18n.
 
 ## Tech stack
 
@@ -34,6 +36,7 @@ Later: learn mode with explanations, Stockfish eval bar (WASM, optional), drill 
 | Spaced repetition | [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)                        |
 | Storage           | IndexedDB via [Dexie](https://dexie.org); optional [Supabase](https://supabase.com) |
 | State and routing | Zustand, React Router                                                               |
+| Engine            | [Stockfish.js](https://github.com/nmrugg/stockfish.js) (lite, single-threaded WASM) |
 | Tests             | Vitest                                                                              |
 
 ## Development
@@ -52,9 +55,15 @@ npm test        # vitest
 
 Varianto does not collect analytics. As a guest it makes no network calls and your repertoire never leaves the browser. If you choose to sign in, your repertoires and progress are stored in your Supabase account and nowhere else. See [docs/deploy.md](docs/deploy.md).
 
+## Eval bar
+
+An optional evaluation bar sits beside the board on the Learn page and the repertoire board page. It is off by default. When you turn it on, Stockfish (lite, single-threaded WebAssembly, about 1.8 MB) is downloaded from the site itself and runs in a Web Worker on your device. Nothing is sent anywhere. Practice and Drill never show it, because it would give the answer away.
+
+`npm run dev` and `npm run build` copy the engine files from `node_modules/stockfish` into `public/stockfish/` (git-ignored) with `scripts/copy-stockfish.mjs`.
+
 ## License
 
-Varianto is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only). Dependencies such as chessground are GPL-3.0-or-later, which is why this project uses the same license.
+Varianto is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only). Dependencies such as chessground and Stockfish.js are GPL licensed, which is why this project uses the same license. The Stockfish licence text ships with the site in `stockfish/Copying.txt`.
 
 ## Credits
 
