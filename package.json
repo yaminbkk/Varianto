@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-stockfish.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/copy-stockfish.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "openings": "node scripts/build-openings.ts",
@@ -22,6 +24,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
+    "stockfish": "19.0.1",
     "ts-fsrs": "^5.4.2",
     "zustand": "^5.0.16"
   },

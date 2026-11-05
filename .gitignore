@@ -26,3 +26,6 @@ dist-ssr
 
 # Superpowers scratch workspaces
 /.superpowers
+
+# Stockfish engine files copied from node_modules by scripts/copy-stockfish.mjs
+/public/stockfish
