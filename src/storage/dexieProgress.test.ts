@@ -143,4 +143,24 @@ describe('DexieProgressStore drills', () => {
     expect((await store.reviewCards('c')).size).toBe(0)
     expect(await store.drillResults('c')).toEqual([])
   })
+
+  it('has no active days at first', async () => {
+    const { store } = freshStore()
+    expect(await store.activityDays()).toEqual([])
+  })
+
+  it('records active days once each and lists them in order', async () => {
+    const { store } = freshStore()
+    await store.recordActivity('2026-11-05')
+    await store.recordActivity('2026-11-03')
+    await store.recordActivity('2026-11-05')
+    expect(await store.activityDays()).toEqual(['2026-11-03', '2026-11-05'])
+  })
+
+  it('keeps active days when a course is reset', async () => {
+    const { store } = freshStore()
+    await store.recordActivity('2026-11-05')
+    await store.reset('c')
+    expect(await store.activityDays()).toEqual(['2026-11-05'])
+  })
 })

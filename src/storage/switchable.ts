@@ -75,4 +75,10 @@ export class SwitchableProgressStore implements ProgressStore {
   drillResults(courseId: string): Promise<DrillRecord[]> {
     return this.current.drillResults(courseId)
   }
+  recordActivity(day: string): Promise<void> {
+    return this.current.recordActivity(day)
+  }
+  activityDays(): Promise<string[]> {
+    return this.current.activityDays()
+  }
 }

@@ -211,6 +211,24 @@ export function progressGateway(client: SupabaseClient): ProgressGateway {
       )
       return rows.map((r) => ({ ...r.result, at: r.at }))
     },
+
+    async addActivity(day) {
+      check(
+        await client
+          .from('activity_days')
+          .upsert({ day }, { onConflict: 'user_id,day', ignoreDuplicates: true }),
+      )
+    },
+
+    async listActivity() {
+      const rows = await fetchAllPages<{ day: string }>(
+        async (from, to) =>
+          check<{ day: string }[]>(
+            await client.from('activity_days').select('day').order('day').range(from, to),
+          ) ?? [],
+      )
+      return rows.map((r) => r.day)
+    },
   }
 }
 

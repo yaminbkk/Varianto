@@ -20,12 +20,18 @@ export interface DrillRow extends DrillResult {
   at: number
 }
 
+export interface ActivityRow {
+  /** A local calendar day, `YYYY-MM-DD`. */
+  day: string
+}
+
 export class VariantoDb extends Dexie {
   repertoires!: Table<RepertoireRow, string>
   nodes!: Table<NodeRow, [string, string]>
   learned!: Table<LearnedRow, [string, string]>
   reviews!: Table<ReviewRow, [string, string]>
   drills!: Table<DrillRow, number>
+  activity!: Table<ActivityRow, string>
 
   constructor(name = 'varianto') {
     super(name)
@@ -39,6 +45,9 @@ export class VariantoDb extends Dexie {
     this.version(3).stores({
       reviews: '[courseId+lineKey], courseId',
       drills: '++id, courseId',
+    })
+    this.version(4).stores({
+      activity: 'day',
     })
   }
 }

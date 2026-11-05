@@ -22,4 +22,8 @@ export interface ProgressStore {
   addDrillResult(courseId: string, result: DrillResult, at: number): Promise<void>
   /** Finished drills in the course, newest first. */
   drillResults(courseId: string): Promise<DrillRecord[]>
+  /** Marks a local calendar day (`YYYY-MM-DD`) as one the learner practised. Marking a day twice changes nothing. */
+  recordActivity(day: string): Promise<void>
+  /** Every day the learner practised, oldest first. Not tied to a course, so resetting a course keeps it. */
+  activityDays(): Promise<string[]>
 }

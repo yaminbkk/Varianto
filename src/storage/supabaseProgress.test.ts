@@ -9,6 +9,7 @@ function memoryGateway(): ProgressGateway {
   const learned = new Set<string>()
   const reviews = new Map<string, Record<string, unknown>>()
   const drills: { courseId: string; result: DrillResult; at: number }[] = []
+  const activity = new Set<string>()
   const key = (courseId: string, lineKey: string) => JSON.stringify([courseId, lineKey])
   return {
     async addLearned(courseId, lineKey) {
@@ -41,6 +42,12 @@ function memoryGateway(): ProgressGateway {
     },
     async listDrills(courseId) {
       return drills.filter((d) => d.courseId === courseId).map((d) => ({ ...d.result, at: d.at }))
+    },
+    async addActivity(day) {
+      activity.add(day)
+    },
+    async listActivity() {
+      return [...activity]
     },
   }
 }
@@ -118,5 +125,21 @@ describe('SupabaseProgressStore', () => {
     expect((await store.learnedLines('c2')).size).toBe(1)
     expect((await store.reviewCards('c2')).size).toBe(1)
     expect(await store.drillResults('c2')).toHaveLength(1)
+  })
+
+  it('records active days once each and lists them in order', async () => {
+    const store = new SupabaseProgressStore(memoryGateway())
+    expect(await store.activityDays()).toEqual([])
+    await store.recordActivity('2026-11-05')
+    await store.recordActivity('2026-11-03')
+    await store.recordActivity('2026-11-05')
+    expect(await store.activityDays()).toEqual(['2026-11-03', '2026-11-05'])
+  })
+
+  it('keeps active days when a course is reset', async () => {
+    const store = new SupabaseProgressStore(memoryGateway())
+    await store.recordActivity('2026-11-05')
+    await store.reset('c')
+    expect(await store.activityDays()).toEqual(['2026-11-05'])
   })
 })

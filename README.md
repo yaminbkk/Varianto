@@ -22,7 +22,7 @@ A free and open-source chess opening trainer. Build your own repertoire, then dr
 6. Local storage with full JSON export and import
 7. Settings: board theme, sound, font size
 
-Also available: learn mode with explanations, drill mode, and an optional Stockfish eval bar (see below).
+Also available: learn mode with explanations, drill mode, an optional Stockfish eval bar (see below), and a daily streak in the header (a day counts when you finish a line, review, or drill).
 
 Later: dashboard, PWA, i18n.
 

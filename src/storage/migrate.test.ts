@@ -102,4 +102,19 @@ describe('copyLocalToAccount', () => {
     expect((await to.repertoires.load(rep.id))!.name).toBe('Edited in the account')
     expect((await to.progress.reviewCards('italian-game')).get('a')).toEqual(later)
   })
+
+  it('copies active days, keeps the account days, and is idempotent', async () => {
+    const from = stores()
+    const to = stores()
+    await from.progress.recordActivity('2026-11-01')
+    await from.progress.recordActivity('2026-11-02')
+    await to.progress.recordActivity('2026-11-02')
+    await to.progress.recordActivity('2026-11-04')
+
+    await copyLocalToAccount(from, to)
+    await copyLocalToAccount(from, to)
+
+    expect(await to.progress.activityDays()).toEqual(['2026-11-01', '2026-11-02', '2026-11-04'])
+    expect(await from.progress.activityDays()).toEqual(['2026-11-01', '2026-11-02'])
+  })
 })
