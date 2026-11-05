@@ -16,7 +16,7 @@ import { progressId, resolveCourse } from '../../domain/learn/variants'
 import { explanationFor } from '../../domain/learn/moveExplanations'
 import { soundKindFor, type SoundKind } from '../../domain/learn/soundKind'
 import { sanSequence } from '../../domain/openings/parse'
-import { sanFromSquares } from '../../domain/repertoire/squares'
+import { fenAfterSquares, sanFromSquares } from '../../domain/repertoire/squares'
 import type { Color } from '../../domain/repertoire/tree'
 import { useEffect } from 'react'
 import Board from '../Board'
@@ -229,7 +229,10 @@ function Session({
   const [soundOn, setSoundOn] = useState(loadSoundEnabled)
   const [evalOn, setEvalOn] = useState(loadEvalEnabled)
   const boardFen = lesson.fens[lesson.cursor] ?? lesson.fens[0] ?? ''
-  const evaluation = useEvaluation(boardFen, evalOn)
+  // After a wrong move the bar shows that move's position until the learner tries again,
+  // even though the piece slides back on the board.
+  const [probeFen, setProbeFen] = useState<string | null>(null)
+  const evaluation = useEvaluation(probeFen ?? boardFen, evalOn)
 
   /** Plain-language explanation of the move at `index`, given the position it was played in. */
   function explain(index: number, fens: readonly string[]): string {
@@ -265,6 +268,7 @@ function Session({
     setLesson(next)
     setHintOn(false)
     setMessage(null)
+    setProbeFen(null)
     const moveIndex = previous.cursor
     const replyIndex = moveIndex + 1
     const replied = next.cursor > moveIndex + 1
@@ -291,6 +295,7 @@ function Session({
     window.setTimeout(() => setResetToken((n) => n + 1), 450)
     sfx('wrong')
     if (outcome.kind === 'wrong') {
+      setProbeFen(fenAfterSquares(boardFen, from, to))
       setMessage(`That is a fine move, but this line plays ${outcome.expected}.`)
     } else {
       setMessage('That move is not allowed. Try another one.')
@@ -305,6 +310,7 @@ function Session({
       if (next.finished && !lesson.finished) setBoardKey((k) => k + 1)
     } else {
       setHintOn(true)
+      setProbeFen(null)
     }
   }
 
@@ -313,6 +319,7 @@ function Session({
     setLesson(next)
     setHintOn(false)
     setMessage(null)
+    setProbeFen(null)
     setNotes([])
     setBoardKey((k) => k + 1)
   }
@@ -406,7 +413,14 @@ function Session({
                     Undo move
                   </button>
                   {message && (
-                    <button type="button" className="btn" onClick={() => setMessage(null)}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => {
+                        setMessage(null)
+                        setProbeFen(null)
+                      }}
+                    >
                       Try again
                     </button>
                   )}

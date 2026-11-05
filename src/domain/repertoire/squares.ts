@@ -12,6 +12,20 @@ export function sanFromSquares(fen: string, from: string, to: string): string | 
   }
 }
 
+/**
+ * The position (FEN) after the move from `from` to `to` in the position `fen`, or null if the
+ * move is illegal. Promotions are always to a queen.
+ */
+export function fenAfterSquares(fen: string, from: string, to: string): string | null {
+  try {
+    const chess = new Chess(fen)
+    chess.move({ from, to, promotion: 'q' })
+    return chess.fen()
+  } catch {
+    return null
+  }
+}
+
 /** Legal target squares for each movable square in the position `fen`. */
 export function legalDests(fen: string): Map<string, string[]> {
   const dests = new Map<string, string[]>()

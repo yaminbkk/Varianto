@@ -33,10 +33,12 @@ type State = 'booting' | 'idle' | 'searching' | 'stopping'
 
 export function createEngineSession(
   transport: EngineTransport,
-  options: { depth?: number; hashMb?: number } = {},
+  options: { depth?: number; hashMb?: number; bootTimeoutMs?: number } = {},
 ): EngineSession {
   const depth = options.depth ?? 14
   const hashMb = options.hashMb ?? 16
+  // Downloading and compiling the engine can be slow on a poor connection, so be generous.
+  const bootTimeoutMs = options.bootTimeoutMs ?? 30_000
   const cache = new Map<string, Evaluation>()
   let state: State = 'booting'
   let current: Request | null = null
@@ -68,7 +70,15 @@ export function createEngineSession(
     }
   }
 
+  let bootTimer: ReturnType<typeof setTimeout> | null = null
+
+  function clearBootTimer() {
+    if (bootTimer !== null) clearTimeout(bootTimer)
+    bootTimer = null
+  }
+
   function fail(message: string) {
+    clearBootTimer()
     failure = message
     for (const request of [current, queued]) {
       if (request && !request.dropped) request.onUpdate({ status: 'error', message })
@@ -85,6 +95,7 @@ export function createEngineSession(
       transport.post(`setoption name Hash value ${hashMb}`)
       transport.post('isready')
     } else if (line === 'readyok' && state === 'booting') {
+      clearBootTimer()
       state = 'idle'
       pump()
     } else if (line.startsWith('bestmove')) {
@@ -111,6 +122,12 @@ export function createEngineSession(
     }
   })
 
+  // A worker whose engine fails to start (for example a wasm that cannot compile) may never
+  // report an error, so give up if it is not ready in time.
+  bootTimer = setTimeout(() => {
+    bootTimer = null
+    if (state === 'booting' && !disposed) fail('The engine did not start')
+  }, bootTimeoutMs)
   transport.post('uci')
 
   return {
@@ -134,6 +151,7 @@ export function createEngineSession(
     },
     dispose() {
       disposed = true
+      clearBootTimer()
       transport.terminate()
     },
   }
