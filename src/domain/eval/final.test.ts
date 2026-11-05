@@ -19,9 +19,7 @@ describe('finalEvaluation', () => {
   })
 
   it('returns null while the game goes on', () => {
-    expect(
-      finalEvaluation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
-    ).toBeNull()
+    expect(finalEvaluation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toBeNull()
   })
 
   it('returns null for an invalid FEN', () => {

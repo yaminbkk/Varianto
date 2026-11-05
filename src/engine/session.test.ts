@@ -103,9 +103,7 @@ describe('createEngineSession', () => {
     const { transport, session } = ready()
     const { updates, onUpdate } = collect()
     session.evaluate(FOOLS_MATE, onUpdate)
-    expect(updates).toEqual([
-      { status: 'done', evaluation: { kind: 'final', result: 'black' } },
-    ])
+    expect(updates).toEqual([{ status: 'done', evaluation: { kind: 'final', result: 'black' } }])
     expect(transport.sent.some((c) => c.startsWith('go'))).toBe(false)
   })
 
