@@ -1,6 +1,6 @@
 import { DEFAULT_POSITION } from 'chess.js'
 import { describe, expect, it } from 'vitest'
-import { legalDests, sanFromSquares, sideToMove } from './squares'
+import { fenAfterSquares, legalDests, sanFromSquares, sideToMove } from './squares'
 
 describe('sanFromSquares', () => {
   it('returns the SAN of a legal move', () => {
@@ -37,5 +37,17 @@ describe('sideToMove', () => {
   it('reads the side from the FEN', () => {
     expect(sideToMove(DEFAULT_POSITION)).toBe('white')
     expect(sideToMove('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1')).toBe('black')
+  })
+})
+
+describe('fenAfterSquares', () => {
+  it('returns the position after a legal move', () => {
+    const fen = fenAfterSquares(DEFAULT_POSITION, 'e2', 'e4')
+    expect(fen?.split(' ')[0]).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR')
+    expect(fen?.split(' ')[1]).toBe('b')
+  })
+
+  it('returns null for an illegal move', () => {
+    expect(fenAfterSquares(DEFAULT_POSITION, 'e2', 'e5')).toBeNull()
   })
 })

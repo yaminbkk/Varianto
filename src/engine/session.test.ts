@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Evaluation } from '../domain/eval/types'
 import { FakeTransport } from './fakeTransport'
 import { createEngineSession, type EvalUpdate } from './session'
@@ -138,5 +138,46 @@ describe('createEngineSession', () => {
     transport.emit('info depth 9 score cp 99 pv e2e4')
     transport.emit('bestmove e2e4')
     expect(updates).toEqual([{ status: 'thinking', evaluation: null }])
+  })
+})
+
+describe('createEngineSession boot timeout', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('reports an error when the engine never becomes ready', () => {
+    vi.useFakeTimers()
+    const transport = new FakeTransport()
+    const session = createEngineSession(transport)
+    const { updates, onUpdate } = collect()
+    session.evaluate(START, onUpdate)
+    vi.advanceTimersByTime(29_999)
+    expect(updates).toEqual([{ status: 'thinking', evaluation: null }])
+    vi.advanceTimersByTime(1)
+    expect(updates.at(-1)).toEqual({ status: 'error', message: 'The engine did not start' })
+
+    const later = collect()
+    session.evaluate(AFTER_E4, later.onUpdate)
+    expect(later.updates).toEqual([{ status: 'error', message: 'The engine did not start' }])
+  })
+
+  it('does not time out once the engine is ready', () => {
+    vi.useFakeTimers()
+    const transport = new FakeTransport()
+    const session = createEngineSession(transport)
+    const { updates, onUpdate } = collect()
+    session.evaluate(START, onUpdate)
+    transport.emit('uciok')
+    transport.emit('readyok')
+    vi.advanceTimersByTime(60_000)
+    expect(updates.some((u) => u.status === 'error')).toBe(false)
+  })
+
+  it('stops the timer on dispose', () => {
+    vi.useFakeTimers()
+    const session = createEngineSession(new FakeTransport())
+    session.dispose()
+    expect(vi.getTimerCount()).toBe(0)
   })
 })
