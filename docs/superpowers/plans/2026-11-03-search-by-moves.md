@@ -30,10 +30,12 @@
 ### Task 1: Match courses by move prefix
 
 **Files:**
+
 - Modify: `src/domain/learn/searchCourses.ts`
 - Test: `src/domain/learn/searchCourses.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Course`, `CourseLine` from `./courses`; `sanSequence` from `../openings/parse`.
 - Produces: `searchCoursesByMoves(families: readonly Course[], moves: string): Course[]`
 
@@ -79,6 +81,7 @@ Expected: FAIL, `searchCoursesByMoves` is not exported.
 git add src/domain/learn/searchCourses.test.ts
 git commit -m "Add failing test for searching courses by moves"
 ```
+
 (Message body: "Failing step of TDD." — keep subject under 72 chars and end with Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>.)
 
 - [ ] **Step 4: Implement `searchCoursesByMoves` in `searchCourses.ts`**
@@ -102,9 +105,11 @@ git commit -m "Search courses by move prefix"
 ### Task 2: Move-search toggle on the learn catalog
 
 **Files:**
+
 - Modify: `src/ui/pages/LearnCatalogPage.tsx` (state near line 30, `shown` memo near line 53, search field near line 92)
 
 **Interfaces:**
+
 - Consumes: `searchCoursesByMoves` from `../../domain/learn/searchCourses`.
 - Produces: nothing for later tasks.
 

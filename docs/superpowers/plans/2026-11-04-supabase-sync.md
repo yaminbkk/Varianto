@@ -31,6 +31,7 @@
 ### Task 1: Pages deploy config
 
 **Files:**
+
 - Modify: `vite.config.ts`
 - Create: `.github/workflows/pages.yml`
 
@@ -56,8 +57,10 @@
 **Files:** Create `src/storage/supabaseStore.ts`, `src/storage/supabaseStore.test.ts`.
 
 **Interfaces:**
+
 - Consumes: `RepertoireStore`, `toRows`, `fromRows`, `RepertoireRow`, `NodeRow` from existing storage.
 - Produces:
+
 ```ts
 export interface RepertoireGateway {
   saveMany(items: { repertoire: RepertoireRow; nodes: NodeRow[] }[]): Promise<void> // atomic, replaces nodes
@@ -65,7 +68,9 @@ export interface RepertoireGateway {
   fetchAll(): Promise<{ repertoire: RepertoireRow; nodes: NodeRow[] }[]>
   remove(id: string): Promise<void>
 }
-export class SupabaseRepertoireStore implements RepertoireStore { constructor(gateway: RepertoireGateway) }
+export class SupabaseRepertoireStore implements RepertoireStore {
+  constructor(gateway: RepertoireGateway)
+}
 ```
 
 - [ ] **Step 1:** Write the failing test with an in-memory `RepertoireGateway` fake whose `saveMany` replaces nodes per repertoire. Tests: save then load round-trips equal; saving a pruned tree drops removed nodes (Review Focus 2); `list` returns `{id,name,color}`; `loadAll`; `remove` then `load` is `undefined`; unknown remove ignored; input repertoire is not mutated.
@@ -78,8 +83,10 @@ export class SupabaseRepertoireStore implements RepertoireStore { constructor(ga
 **Files:** Create `src/storage/supabaseProgress.ts`, `src/storage/supabaseProgress.test.ts`.
 
 **Interfaces:**
+
 - Consumes: `ProgressStore`, `DrillRecord`, `ReviewCard`, `DrillResult`.
 - Produces:
+
 ```ts
 export interface ProgressGateway {
   addLearned(courseId: string, lineKey: string): Promise<void> // idempotent
@@ -90,7 +97,9 @@ export interface ProgressGateway {
   addDrill(courseId: string, result: DrillResult, at: number): Promise<void>
   listDrills(courseId: string): Promise<(DrillResult & { at: number })[]>
 }
-export class SupabaseProgressStore implements ProgressStore { constructor(gateway: ProgressGateway) }
+export class SupabaseProgressStore implements ProgressStore {
+  constructor(gateway: ProgressGateway)
+}
 ```
 
 - [ ] **Step 1:** Failing test with an in-memory gateway, mirroring `src/storage/dexieProgress.test.ts` cases: markLearned idempotent; `learnedLines` set; `learnedCounts` per course; `reset` clears one course only; review card replace; drills newest first.
@@ -103,10 +112,18 @@ export class SupabaseProgressStore implements ProgressStore { constructor(gatewa
 **Files:** Create `src/storage/switchable.ts`, `src/storage/switchable.test.ts`.
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
-export class SwitchableRepertoireStore implements RepertoireStore { constructor(initial: RepertoireStore); use(next: RepertoireStore): void }
-export class SwitchableProgressStore implements ProgressStore { constructor(initial: ProgressStore); use(next: ProgressStore): void }
+export class SwitchableRepertoireStore implements RepertoireStore {
+  constructor(initial: RepertoireStore)
+  use(next: RepertoireStore): void
+}
+export class SwitchableProgressStore implements ProgressStore {
+  constructor(initial: ProgressStore)
+  use(next: ProgressStore): void
+}
 ```
 
 - [ ] **Step 1:** Failing tests: calls go to the current backend; after `use`, new calls go to the new backend and never the old; a call started before `use` completes on the backend it started on (Review Focus 3).
@@ -119,6 +136,7 @@ export class SwitchableProgressStore implements ProgressStore { constructor(init
 **Files:** Create `src/storage/migrate.ts`, `src/storage/migrate.test.ts`.
 
 **Interfaces:**
+
 - Consumes: both store interfaces, plus a `listCourseIds` function supplied by the caller.
 - Produces: `copyLocalToAccount(from: { repertoires: RepertoireStore; progress: ProgressStore }, to: { repertoires: RepertoireStore; progress: ProgressStore }, courseIds: string[]): Promise<{ repertoires: number; lines: number }>`.
 
@@ -132,7 +150,9 @@ export class SwitchableProgressStore implements ProgressStore { constructor(init
 **Files:** Create `src/auth/auth.ts`, `src/auth/auth.test.ts`, `src/storage/supabaseClient.ts`, `src/storage/supabaseGateways.ts`; modify `package.json`, `.env.example`, `src/vite-env.d.ts` (if present).
 
 **Interfaces:**
+
 - Produces:
+
 ```ts
 export interface AuthService {
   readonly enabled: boolean
@@ -142,8 +162,14 @@ export interface AuthService {
   signOut(): Promise<void>
   onChange(listener: (user: { id: string; email: string } | undefined) => void): () => void
 }
-export function createAuthService(env: { url?: string; anonKey?: string }, load: () => Promise<typeof import('@supabase/supabase-js')>): AuthService
-export function createSupabaseBackends(client: unknown): { repertoires: RepertoireStore; progress: ProgressStore }
+export function createAuthService(
+  env: { url?: string; anonKey?: string },
+  load: () => Promise<typeof import('@supabase/supabase-js')>,
+): AuthService
+export function createSupabaseBackends(client: unknown): {
+  repertoires: RepertoireStore
+  progress: ProgressStore
+}
 ```
 
 - [ ] **Step 1:** Failing test for `createAuthService`: with empty env, `enabled` is `false`, `currentUser()` resolves `undefined`, and `load` is never called (Review Focus 5); with env set and a fake `load`, `signIn` forwards credentials and rejects with the server's message on error; `onChange` is unsubscribed by the returned function.
@@ -157,6 +183,7 @@ export function createSupabaseBackends(client: unknown): { repertoires: Repertoi
 **Files:** Create `src/ui/pages/AccountPage.tsx`, `src/ui/AuthContext.tsx`; modify `src/main.tsx`, `src/App.tsx`, `src/ui/router.tsx`, `src/ui/paths.ts`, `src/ui/paths.test.ts`, `src/ui/AppHeader.tsx`.
 
 **Interfaces:**
+
 - Consumes: `AuthService`, switchable stores, `copyLocalToAccount`, `createSupabaseBackends`.
 - Produces: `accountPath = '/account'`; `AuthProvider` and `useAuth()`.
 

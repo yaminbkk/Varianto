@@ -166,8 +166,7 @@ function Drill({ course }: { course: Course }) {
           <h2 id={`${durationName}-result`}>Time!</h2>
           <p role="status">
             {finished.result.passed} passed, {finished.result.failed} missed in{' '}
-            {clock(finished.result.elapsedMs)}.
-            {finished.isBest ? ' That is your best so far.' : ''}
+            {clock(finished.result.elapsedMs)}.{finished.isBest ? ' That is your best so far.' : ''}
           </p>
           <div className="actions">
             <button type="button" className="btn btn-primary" onClick={start}>

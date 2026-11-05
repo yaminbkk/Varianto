@@ -38,11 +38,11 @@ Goal: a vertical bar next to the board that shows who is better and by how much,
 
 ## Approaches considered
 
-| | What | Trade-off |
-|---|---|---|
+|                | What                                                                                                                    | Trade-off                                                                                                       |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **A (chosen)** | `stockfish` npm package, `lite-single` build (~1.8 MB wasm), run as a Web Worker, loaded only when the bar is turned on | Simple, updatable, licence included. Package unpacks to ~205 MB in `node_modules`/CI (not in the deployed site) |
-| B | Commit the lite-single files into the repo | Light install, but binaries in git and manual updates |
-| C | Multi-threaded lite build | Faster, but needs COOP/COEP, which Pages cannot send without a service-worker workaround |
+| B              | Commit the lite-single files into the repo                                                                              | Light install, but binaries in git and manual updates                                                           |
+| C              | Multi-threaded lite build                                                                                               | Faster, but needs COOP/COEP, which Pages cannot send without a service-worker workaround                        |
 
 Cloud-eval APIs were rejected: they are network calls and break guest mode. Chosen: **A**, because it is the least complex option that meets every constraint.
 

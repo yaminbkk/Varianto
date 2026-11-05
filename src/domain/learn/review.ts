@@ -14,11 +14,7 @@ const RATINGS = {
 } as const
 
 /** How well a practice run went: mistakes or Solve mean it was forgotten, a hint means it was hard. */
-export function gradeFor(result: {
-  mistakes: number
-  hinted: boolean
-  solved: boolean
-}): Grade {
+export function gradeFor(result: { mistakes: number; hinted: boolean; solved: boolean }): Grade {
   if (result.solved || result.mistakes > 0) return 'again'
   return result.hinted ? 'hard' : 'good'
 }

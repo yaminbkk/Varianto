@@ -54,7 +54,11 @@ export default function LearnCatalogPage() {
   const shown = useMemo(
     () =>
       filterCourses(
-        courses ? (byMoves ? searchCoursesByMoves(courses, query) : searchCourses(courses, query)) : [],
+        courses
+          ? byMoves
+            ? searchCoursesByMoves(courses, query)
+            : searchCourses(courses, query)
+          : [],
         side,
         move,
       ),

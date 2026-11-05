@@ -34,6 +34,7 @@
 **Files:** Create `src/domain/learn/review.ts`; Test `src/domain/learn/review.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `type ReviewCard` (alias of ts-fsrs `Card`)
   - `type Grade = 'again' | 'hard' | 'good'`
@@ -52,6 +53,7 @@
 **Files:** Create `src/domain/learn/drill.ts`; Test `src/domain/learn/drill.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `DRILL_DURATIONS_MS: readonly [60000, 180000, 300000]`, `DEFAULT_DRILL_MS = 180000`
   - `interface DrillState { queue: readonly string[]; index: number; passed: number; failed: number; startedAt: number; durationMs: number }`
@@ -71,6 +73,7 @@
 **Files:** Modify `src/storage/db.ts` (version 3: `reviews: '[courseId+lineKey], courseId'`, `drills: '++id, courseId'`), `src/storage/progress.ts`, `src/storage/dexieProgress.ts`; Test `src/storage/dexieProgress.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ReviewCard`, `DrillResult` from the domain.
 - Produces on `ProgressStore`:
   - `reviewCards(courseId: string): Promise<Map<string, ReviewCard>>` (key = line key)
@@ -88,6 +91,7 @@
 **Files:** Create `src/ui/LinePlayer.tsx`, `src/ui/pages/PracticePage.tsx`, `src/ui/pages/DrillPage.tsx`; Modify `src/ui/paths.ts`, `src/ui/paths.test.ts`, `src/ui/router.tsx`, `src/ui/pages/CoursePage.tsx`
 
 **Interfaces:**
+
 - Produces:
   - `practicePath(courseId: string): string` → `/learn/<id>/practice`; `drillPath(courseId: string): string` → `/learn/<id>/drill`
   - `LinePlayer` props: `{ line: CourseLine; side: Color; allowHint: boolean; onDone: (r: { mistakes: number; hinted: boolean; solved: boolean }) => void; onFail?: () => void }`. Plays the line from memory with `startLesson/submitMove/hintSquare/solve`; counts mistakes; when `onFail` is given, the first mistake calls it instead of showing a retry.
