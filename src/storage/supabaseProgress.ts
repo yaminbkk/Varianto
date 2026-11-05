@@ -16,6 +16,9 @@ export interface ProgressGateway {
   listReviews(courseId: string): Promise<{ lineKey: string; card: CardJson }[]>
   addDrill(courseId: string, result: DrillResult, at: number): Promise<void>
   listDrills(courseId: string): Promise<(DrillResult & { at: number })[]>
+  /** Idempotent. */
+  addActivity(day: string): Promise<void>
+  listActivity(): Promise<string[]>
 }
 
 const DATE_FIELDS = ['due', 'last_review'] as const
@@ -72,6 +75,14 @@ export class SupabaseProgressStore implements ProgressStore {
 
   addDrillResult(courseId: string, result: DrillResult, at: number): Promise<void> {
     return this.gateway.addDrill(courseId, result, at)
+  }
+
+  recordActivity(day: string): Promise<void> {
+    return this.gateway.addActivity(day)
+  }
+
+  async activityDays(): Promise<string[]> {
+    return [...new Set(await this.gateway.listActivity())].sort()
   }
 
   async drillResults(courseId: string): Promise<DrillRecord[]> {

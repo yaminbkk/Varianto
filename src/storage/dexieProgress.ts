@@ -48,6 +48,14 @@ export class DexieProgressStore implements ProgressStore {
     await this.db.drills.add({ ...result, courseId, at })
   }
 
+  async recordActivity(day: string): Promise<void> {
+    await this.db.activity.put({ day })
+  }
+
+  async activityDays(): Promise<string[]> {
+    return (await this.db.activity.toArray()).map((r) => r.day).sort()
+  }
+
   async drillResults(courseId: string): Promise<DrillRecord[]> {
     const rows = await this.db.drills.where('courseId').equals(courseId).toArray()
     return rows

@@ -94,10 +94,6 @@ describe('SwitchableProgressStore', () => {
     await store.markLearned('c', 'b')
     await store.recordActivity('2026-11-05')
 
-    expect(log).toEqual([
-      'local:learned:c:a',
-      'remote:learned:c:b',
-      'remote:activity:2026-11-05',
-    ])
+    expect(log).toEqual(['local:learned:c:a', 'remote:learned:c:b', 'remote:activity:2026-11-05'])
   })
 })
