@@ -4,6 +4,9 @@ import { outlineRows, type OutlineRow } from '../../domain/repertoire/outline'
 import { sanFromSquares } from '../../domain/repertoire/squares'
 import { getNode } from '../../domain/repertoire/tree'
 import Board from '../Board'
+import EvalBar from '../EvalBar'
+import EvalToggle from '../EvalToggle'
+import { loadEvalEnabled, saveEvalEnabled } from '../evalPref'
 import ExportButton from '../ExportButton'
 import { ILLEGAL_MOVE_MESSAGE, friendlyError } from '../messages'
 import MoveList from '../MoveList'
@@ -11,6 +14,7 @@ import { homePath } from '../paths'
 import SkipLink from '../SkipLink'
 import { commentToFlush } from '../commentFlush'
 import { SAVE_ERROR_MESSAGE, useAppStore, useStoreSnapshot } from '../useAppStore'
+import { useEvaluation } from '../useEvaluation'
 
 export default function BoardPage() {
   const { id = '' } = useParams()
@@ -57,6 +61,19 @@ export default function BoardPage() {
     const start: OutlineRow = { nodeId: rep.rootId, depth: 0, label: 'Start position' }
     return [start, ...outlineRows(rep)]
   }, [rep])
+
+  const [evalOn, setEvalOn] = useState(loadEvalEnabled)
+  const shownFen =
+    rep && selectedNodeId !== null && selectedNodeId in rep.nodes
+      ? getNode(rep, selectedNodeId).fen
+      : ''
+  const evaluation = useEvaluation(shownFen, evalOn)
+
+  function toggleEval() {
+    const next = !evalOn
+    setEvalOn(next)
+    saveEvalEnabled(next)
+  }
 
   if (!rep || selectedNodeId === null || !(selectedNodeId in rep.nodes)) {
     const settled = loaded?.id === id
@@ -133,6 +150,11 @@ export default function BoardPage() {
         <p className="hint">Playing {rep.color === 'white' ? 'White' : 'Black'}</p>
         <div className="actions">
           <ExportButton rep={rep} />
+          <EvalToggle
+            enabled={evalOn}
+            onToggle={toggleEval}
+            error={evaluation.state.status === 'error' ? evaluation.state.message : null}
+          />
         </div>
 
         <div className="alerts" role="alert">
@@ -143,7 +165,16 @@ export default function BoardPage() {
 
         <div className="board-layout">
           <div className="board-column">
-            <Board key={boardKey} fen={node.fen} orientation={rep.color} canMove onMove={onMove} />
+            <div className="eval-layout">
+              {evalOn && <EvalBar view={evaluation} orientation={rep.color} />}
+              <Board
+                key={boardKey}
+                fen={node.fen}
+                orientation={rep.color}
+                canMove
+                onMove={onMove}
+              />
+            </div>
           </div>
 
           <div className="side-column">

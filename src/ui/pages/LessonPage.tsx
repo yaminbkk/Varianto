@@ -20,10 +20,14 @@ import { sanFromSquares } from '../../domain/repertoire/squares'
 import type { Color } from '../../domain/repertoire/tree'
 import { useEffect } from 'react'
 import Board from '../Board'
+import EvalBar from '../EvalBar'
+import EvalToggle from '../EvalToggle'
+import { loadEvalEnabled, saveEvalEnabled } from '../evalPref'
 import { coursePath, learnPath } from '../paths'
 import SkipLink from '../SkipLink'
 import { loadSoundEnabled, playSound, saveSoundEnabled } from '../sound'
 import { useCourses } from '../useCourses'
+import { useEvaluation } from '../useEvaluation'
 import { useProgress } from '../useProgress'
 
 function isDepth(value: string | null): value is Depth {
@@ -223,6 +227,9 @@ function Session({
   const [hintOn, setHintOn] = useState(false)
   const opponent = side === 'white' ? 'Black' : 'White'
   const [soundOn, setSoundOn] = useState(loadSoundEnabled)
+  const [evalOn, setEvalOn] = useState(loadEvalEnabled)
+  const boardFen = lesson.fens[lesson.cursor] ?? lesson.fens[0] ?? ''
+  const evaluation = useEvaluation(boardFen, evalOn)
 
   /** Plain-language explanation of the move at `index`, given the position it was played in. */
   function explain(index: number, fens: readonly string[]): string {
@@ -246,6 +253,12 @@ function Session({
     setSoundOn(next)
     saveSoundEnabled(next)
     if (next) playSound('move')
+  }
+
+  function toggleEval() {
+    const next = !evalOn
+    setEvalOn(next)
+    saveEvalEnabled(next)
   }
 
   function apply(next: Lesson, previous: Lesson) {
@@ -324,19 +337,27 @@ function Session({
           <button type="button" className="btn" aria-pressed={soundOn} onClick={toggleSound}>
             Sound: {soundOn ? 'on' : 'off'}
           </button>
+          <EvalToggle
+            enabled={evalOn}
+            onToggle={toggleEval}
+            error={evaluation.state.status === 'error' ? evaluation.state.message : null}
+          />
         </div>
 
         <div className="board-layout">
           <div className="board-column">
-            <Board
-              key={boardKey}
-              resetToken={resetToken}
-              fen={lesson.fens[lesson.cursor] ?? lesson.fens[0] ?? ''}
-              orientation={side}
-              canMove={!lesson.finished}
-              onMove={onMove}
-              hint={hint}
-            />
+            <div className="eval-layout">
+              {evalOn && <EvalBar view={evaluation} orientation={side} />}
+              <Board
+                key={boardKey}
+                resetToken={resetToken}
+                fen={boardFen}
+                orientation={side}
+                canMove={!lesson.finished}
+                onMove={onMove}
+                hint={hint}
+              />
+            </div>
           </div>
 
           <div>

@@ -781,3 +781,82 @@ progress {
   font-weight: 500;
   opacity: 0.8;
 }
+
+/* Eval bar */
+.eval-layout {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  max-width: 40rem;
+}
+
+.eval-layout > .board {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.eval-bar {
+  position: relative;
+  flex: 0 0 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.375rem;
+  background: #2b2b2b;
+}
+
+.eval-bar[data-thinking='true'] {
+  opacity: 0.7;
+}
+
+.eval-bar[data-error='true'] {
+  opacity: 0.4;
+}
+
+.eval-bar-white {
+  position: absolute;
+  right: 0;
+  left: 0;
+  background: #f4f4f4;
+  transition: height 300ms ease;
+}
+
+.eval-bar[data-white-at='bottom'] .eval-bar-white {
+  bottom: 0;
+}
+
+.eval-bar[data-white-at='top'] .eval-bar-white {
+  top: 0;
+}
+
+.eval-bar-label {
+  position: absolute;
+  right: 0;
+  left: 0;
+  padding: 0.125rem 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.eval-bar-label[data-end='top'] {
+  top: 0;
+}
+
+.eval-bar-label[data-end='bottom'] {
+  bottom: 0;
+}
+
+.eval-bar-label[data-lead='white'] {
+  color: #1a1a1a;
+}
+
+.eval-bar-label[data-lead='black'] {
+  color: #f4f4f4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eval-bar-white {
+    transition: none;
+  }
+}
