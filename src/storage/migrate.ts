@@ -44,5 +44,11 @@ export async function copyLocalToAccount(from: Backend, to: Backend): Promise<Co
       }
     }
   }
+
+  // Days practised are only ever added, so merging is a plain union.
+  const days = new Set(await to.progress.activityDays())
+  for (const day of await from.progress.activityDays()) {
+    if (!days.has(day)) await to.progress.recordActivity(day)
+  }
   return { repertoires: reps.length, lines }
 }

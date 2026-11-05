@@ -1,5 +1,6 @@
 import type { AuthService } from '../auth/auth'
 import type { Backend } from '../storage/migrate'
+import { withActivity } from '../storage/activity'
 import { createSupabaseBackend } from '../storage/supabaseGateways'
 import { SwitchableProgressStore, SwitchableRepertoireStore } from '../storage/switchable'
 
@@ -21,7 +22,8 @@ export function createBackends(local: Backend, auth: AuthService): Backends {
   const repertoires = new SwitchableRepertoireStore(local.repertoires)
   const progress = new SwitchableProgressStore(local.progress)
   return {
-    current: { repertoires, progress },
+    // Wrapped once, so every save counts toward the streak whichever backend is current.
+    current: { repertoires, progress: withActivity(progress) },
     local,
     async useAccount() {
       const account = createSupabaseBackend(await auth.client())
