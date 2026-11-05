@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { streakText } from './StreakBadge'
+import { streakText } from './streakText'
 
 describe('streakText', () => {
   it('says when today is done', () => {
