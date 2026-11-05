@@ -49,4 +49,12 @@ describe('streakInfo', () => {
     expect(streakInfo(['2025-12-31', '2026-01-01'], '2026-01-01').current).toBe(2)
     expect(streakInfo(['2028-02-28', '2028-02-29', '2028-03-01'], '2028-03-01').current).toBe(3)
   })
+
+  it('ignores days after today, such as from a clock or time zone change', () => {
+    expect(streakInfo(['2026-11-03', '2026-11-04', '2026-11-06'], '2026-11-05')).toEqual({
+      current: 2,
+      longest: 2,
+      activeToday: false,
+    })
+  })
 })

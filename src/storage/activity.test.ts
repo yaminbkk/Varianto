@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { schedule } from '../domain/learn/review'
-import { withActivity } from './activity'
+import { onActivityRecorded, withActivity } from './activity'
 import type { ProgressStore } from './progress'
 
 const NOW = new Date(2026, 10, 5, 23, 30)
@@ -77,5 +77,26 @@ describe('withActivity', () => {
     expect([...(await wrapped.learnedLines('c'))]).toEqual(['a'])
     expect(await wrapped.activityDays()).toEqual(['2026-11-01'])
     expect(log).toEqual([])
+  })
+
+  it('tells listeners after a day is recorded, until they unsubscribe', async () => {
+    const { store } = fakeStore()
+    const wrapped = withActivity(store, () => NOW)
+    let calls = 0
+    const stop = onActivityRecorded(() => calls++)
+    await wrapped.markLearned('c', 'a')
+    expect(calls).toBe(1)
+    stop()
+    await wrapped.markLearned('c', 'b')
+    expect(calls).toBe(1)
+  })
+
+  it('does not tell listeners when recording the day failed', async () => {
+    const { store } = fakeStore({ failActivity: true })
+    let calls = 0
+    const stop = onActivityRecorded(() => calls++)
+    await withActivity(store, () => NOW).markLearned('c', 'a')
+    stop()
+    expect(calls).toBe(0)
   })
 })
