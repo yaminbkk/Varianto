@@ -22,8 +22,11 @@ export interface StreakInfo {
 
 /** Streak figures from the set of active days (`YYYY-MM-DD`) and today's date. */
 export function streakInfo(days: readonly string[], today: string): StreakInfo {
-  const numbers = [...new Set(days.map(dayNumber))].sort((a, b) => a - b)
   const todayNumber = dayNumber(today)
+  // Days after today (a changed time zone or a wrong clock) must not hide the real streak.
+  const numbers = [...new Set(days.map(dayNumber))]
+    .filter((n) => n <= todayNumber)
+    .sort((a, b) => a - b)
   let longest = 0
   let run = 0
   let previous: number | null = null

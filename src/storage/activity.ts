@@ -3,6 +3,16 @@ import type { ReviewCard } from '../domain/learn/review'
 import { localDay } from '../domain/learn/streak'
 import type { DrillRecord, ProgressStore } from './progress'
 
+const listeners = new Set<() => void>()
+
+/** Calls `listener` after a practice day has been recorded. Returns a function that stops listening. */
+export function onActivityRecorded(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+
 /**
  * Wraps a progress store so that finishing a line, saving a review or saving a drill also
  * marks today (the learner's local date) as a day practised. The day is recorded after the
@@ -16,6 +26,7 @@ export function withActivity(
     await save
     try {
       await inner.recordActivity(localDay(now()))
+      for (const listener of [...listeners]) listener()
     } catch {
       // The streak may miss a day; the learner's progress must not.
     }

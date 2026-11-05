@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { localDay, streakInfo, type StreakInfo } from '../domain/learn/streak'
+import { onActivityRecorded } from '../storage/activity'
 import { useProgress } from './useProgress'
 
 /**
@@ -11,6 +12,10 @@ export function useStreak(): StreakInfo | null {
   const progress = useProgress()
   const { key } = useLocation()
   const [info, setInfo] = useState<StreakInfo | null>(null)
+  // Bumped when a day is recorded, so the badge updates without leaving the page.
+  const [recorded, setRecorded] = useState(0)
+
+  useEffect(() => onActivityRecorded(() => setRecorded((n) => n + 1)), [])
 
   useEffect(() => {
     let alive = true
@@ -25,7 +30,7 @@ export function useStreak(): StreakInfo | null {
     return () => {
       alive = false
     }
-  }, [progress, key])
+  }, [progress, key, recorded])
 
   return info
 }
