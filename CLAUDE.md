@@ -19,7 +19,7 @@ Varianto is a free, open-source, local-first chess opening trainer (GPL-3.0). Se
 - TDD: write the test in `src/**/*.test.ts` first, then the implementation.
 - Keep the domain separate from the UI: `src/domain/` must not import React or the DOM.
 - Domain functions are immutable: return a new repertoire and never mutate the input.
-- Before saying work is done, all three must pass: `npx vitest run`, `npm run build`, `npm run lint`.
+- Before saying work is done, all four must pass: `npx vitest run`, `npm run build`, `npm run lint`, `npm run format:check` (CI runs the format check, and it has failed on unformatted files before; fix with `npm run format`).
 
 ## Git
 
