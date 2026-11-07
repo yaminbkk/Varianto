@@ -6,3 +6,5 @@ src/data/openings.json
 .md.local
 .superpowers
 .nexusmem
+graphify-out
+.claude/skills
