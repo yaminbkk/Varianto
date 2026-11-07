@@ -23,6 +23,20 @@
   --hero-from: #e4f3e8;
   --hero-to: #fdf3dc;
 
+  /* ECO volumes: five hues that carry the category in the opening index. */
+  --vol-a: #6d28d9;
+  --vol-b: #b45309;
+  --vol-c: #0f766e;
+  --vol-d: #1d4ed8;
+  --vol-e: #a21caf;
+  --vol-other: var(--text-muted);
+
+  /* The board is an object of its own, so it keeps one palette in both themes. */
+  --sq-light: #ebecd0;
+  --sq-dark: #587a40;
+  --coord-on-light: #2f4a22;
+  --coord-on-dark: #ffffff;
+
   font:
     16px/1.55 Inter,
     system-ui,
@@ -54,6 +68,11 @@
     --shadow-lift: 0 2px 4px rgb(0 0 0 / 50%), 0 10px 24px rgb(0 0 0 / 45%);
     --hero-from: #16301f;
     --hero-to: #2f2410;
+    --vol-a: #c4b5fd;
+    --vol-b: #fbbf24;
+    --vol-c: #5eead4;
+    --vol-d: #93c5fd;
+    --vol-e: #f0abfc;
   }
 }
 
@@ -623,8 +642,8 @@ progress {
 
 .explain {
   padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--accent);
-  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
   background: var(--bg);
 }
 
@@ -771,9 +790,9 @@ progress {
 }
 
 .chip[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-text);
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
 }
 
 .chip-count {
@@ -879,4 +898,301 @@ progress {
 
 .streak-badge + .account-link {
   margin-left: 1rem;
+}
+
+/* Board: green squares and legible coordinates */
+cg-board {
+  background-color: var(--sq-light);
+  background-image: conic-gradient(
+    var(--sq-dark) 25%,
+    var(--sq-light) 0 50%,
+    var(--sq-dark) 0 75%,
+    var(--sq-light) 0
+  );
+  background-size: 25% 25%;
+}
+
+/* chessground puts the rank labels on the left but colours them for the right edge. */
+.cg-wrap coords {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.cg-wrap coords.ranks:not(.left) {
+  right: 4px;
+  left: auto;
+  align-items: flex-end;
+}
+
+.orientation-white .ranks :nth-child(odd),
+.orientation-white .files :nth-child(even),
+.orientation-black .ranks :nth-child(even),
+.orientation-black .files :nth-child(odd) {
+  color: var(--coord-on-light);
+}
+
+.orientation-white .ranks :nth-child(even),
+.orientation-white .files :nth-child(odd),
+.orientation-black .ranks :nth-child(odd),
+.orientation-black .files :nth-child(even) {
+  color: var(--coord-on-dark);
+}
+
+/* Learn catalog */
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+.page-head {
+  margin: 0 0 1rem;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.page-stats {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.resume {
+  margin-top: 1.25rem;
+}
+
+.resume-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resume-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  height: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.resume-card:hover {
+  border-color: var(--accent);
+}
+
+.field .check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  font-weight: 500;
+}
+
+.field .check input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--accent);
+}
+
+.filters {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.75rem 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+
+.filter-label {
+  min-width: 6rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.filters .chips {
+  margin: 0.25rem 0;
+}
+
+.volume {
+  --vol: var(--vol-other);
+  margin-top: 2rem;
+}
+
+.volume[data-volume='A'] {
+  --vol: var(--vol-a);
+}
+
+.volume[data-volume='B'] {
+  --vol: var(--vol-b);
+}
+
+.volume[data-volume='C'] {
+  --vol: var(--vol-c);
+}
+
+.volume[data-volume='D'] {
+  --vol: var(--vol-d);
+}
+
+.volume[data-volume='E'] {
+  --vol: var(--vol-e);
+}
+
+.volume-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--vol);
+  font-size: 1.25rem;
+}
+
+.volume-letter {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  background: var(--vol);
+  color: var(--bg);
+  font-weight: 800;
+}
+
+.volume-count {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.volume .course-grid {
+  margin-top: 0;
+}
+
+.volume .eco {
+  color: var(--vol);
+  font-weight: 700;
+}
+
+/* Lesson page: the instruction sits beside the board, above it on phones */
+.lesson-layout {
+  gap: 1rem;
+}
+
+.lesson-side {
+  display: contents;
+}
+
+.lesson-prompt {
+  order: -1;
+  margin-top: 0;
+}
+
+.lesson-notes {
+  order: 1;
+  margin-top: 0;
+}
+
+.settings {
+  order: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.settings .btn {
+  font-weight: 500;
+}
+
+.settings .btn[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.settings .hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.lesson-notes .explain {
+  margin: 0 0 0.5rem;
+}
+
+.line-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.line-progress progress {
+  flex: 1;
+}
+
+.line-progress span {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.prompt-text {
+  margin: 0.75rem 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.sym {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--danger);
+  color: var(--bg);
+  font-weight: 800;
+}
+
+@media (min-width: 48rem) {
+  .filters {
+    grid-template-columns: repeat(auto-fit, minmax(min-content, max-content));
+    gap: 0 2rem;
+  }
+
+  .lesson-layout {
+    grid-template-columns: minmax(0, 40rem) minmax(17rem, 22rem);
+    gap: 2rem;
+    justify-content: start;
+    align-items: start;
+  }
+
+  .lesson-side {
+    position: sticky;
+    top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .lesson-prompt,
+  .lesson-notes,
+  .settings {
+    order: 0;
+  }
 }

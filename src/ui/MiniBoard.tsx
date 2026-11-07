@@ -12,8 +12,8 @@ const GLYPHS: Record<PieceSymbol, string> = {
   p: '♟',
 }
 
-const LIGHT = '#f0d9b5'
-const DARK = '#b58863'
+const LIGHT = '#ebecd0'
+const DARK = '#587a40'
 
 /** A small, static picture of a position. Decorative: the text next to it names the opening. */
 export default function MiniBoard({ fen, orientation }: { fen: string; orientation: Color }) {
