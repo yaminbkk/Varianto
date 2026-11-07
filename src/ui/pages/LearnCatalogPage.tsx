@@ -13,7 +13,8 @@ import { courseThumbnail } from '../../domain/learn/thumbnail'
 import { searchCourses, searchCoursesByMoves } from '../../domain/learn/searchCourses'
 import { visibleCourses } from '../../domain/learn/visibleCourses'
 import hiddenCourses from '../../data/hidden-courses.json'
-import { ecoFamily } from '../../domain/openings/ecoFamily'
+import { groupByVolume, inProgress } from '../../domain/learn/volumes'
+import type { Course } from '../../domain/learn/courses'
 import MiniBoard from '../MiniBoard'
 import { coursePath } from '../paths'
 import SkipLink from '../SkipLink'
@@ -83,23 +84,44 @@ export default function LearnCatalogPage() {
     [courses, side],
   )
 
+  const groups = useMemo(() => groupByVolume(shown), [shown])
+  const browsing = query === '' && side === null && move === null
+  const resume = useMemo(
+    () => (courses && browsing ? inProgress(courses, counts) : []),
+    [courses, counts, browsing],
+  )
+
   return (
     <>
       <SkipLink targetRef={mainRef} />
       <main id="main" ref={mainRef} tabIndex={-1} className="app">
-        <header className="hero">
+        <header className="page-head">
           <h1>Learn openings</h1>
-          <p className="hint">Pick an opening and play its moves. Mistakes cost nothing.</p>
           {courses && (
-            <ul className="stats">
-              <li className="stat">{courses.length} openings</li>
-              <li className="stat">
-                {courses.reduce((n, c) => n + c.lines.length, 0).toLocaleString('en-US')} lines
-              </li>
-              <li className="stat">{[...counts.values()].reduce((n, c) => n + c, 0)} learned</li>
-            </ul>
+            <p className="page-stats">
+              {courses.length} openings · {totalLines(courses)} lines ·{' '}
+              {[...counts.values()].reduce((n, c) => n + c, 0)} learned
+            </p>
           )}
         </header>
+        {resume.length > 0 && (
+          <section className="resume" aria-labelledby="resume-heading">
+            <h2 id="resume-heading">Continue</h2>
+            <ul className="resume-list">
+              {resume.map((course) => (
+                <li key={course.id}>
+                  <Link className="resume-card" to={coursePath(course.id)}>
+                    <span className="course-name">{course.name}</span>
+                    <span className="course-meta figures">
+                      {counts.get(course.id) ?? 0} of {course.lines.length} lines learned
+                    </span>
+                    <ProgressMeter done={counts.get(course.id) ?? 0} total={course.lines.length} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <div className="field">
           <label htmlFor={searchId}>
             {byMoves
@@ -115,58 +137,70 @@ export default function LearnCatalogPage() {
             autoComplete="off"
             disabled={courses === null}
           />
-          <label>
+          <label className="check">
             <input
               type="checkbox"
               checked={byMoves}
               onChange={(e) => setByMoves(e.target.checked)}
-            />{' '}
+            />
             Search by moves
           </label>
         </div>
-        <div className="chips" role="group" aria-label="Filter by side">
-          <button
-            type="button"
-            className="chip"
-            aria-pressed={side === null}
-            onClick={() => setSide(null)}
-          >
-            All
-          </button>
-          {SIDE_CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="chip"
-              aria-pressed={side === c}
-              onClick={() => setSide(side === c ? null : c)}
-            >
-              {CATEGORY_LABELS[c]}
-              {courses && <span className="chip-count">{sideCounts[c]}</span>}
-            </button>
-          ))}
-        </div>
-        <div className="chips" role="group" aria-label="Filter by first move">
-          <button
-            type="button"
-            className="chip"
-            aria-pressed={move === null}
-            onClick={() => setMove(null)}
-          >
-            Any first move
-          </button>
-          {MOVE_CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="chip"
-              aria-pressed={move === c}
-              onClick={() => setMove(move === c ? null : c)}
-            >
-              {CATEGORY_LABELS[c]}
-              {courses && <span className="chip-count">{moveCounts[c]}</span>}
-            </button>
-          ))}
+        <div className="filters">
+          <div className="filter-group">
+            <span className="filter-label" aria-hidden="true">
+              Side
+            </span>
+            <div className="chips" role="group" aria-label="Filter by side">
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={side === null}
+                onClick={() => setSide(null)}
+              >
+                All
+              </button>
+              {SIDE_CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="chip"
+                  aria-pressed={side === c}
+                  onClick={() => setSide(side === c ? null : c)}
+                >
+                  {CATEGORY_LABELS[c]}
+                  {courses && <span className="chip-count">{sideCounts[c]}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-group">
+            <span className="filter-label" aria-hidden="true">
+              First move
+            </span>
+            <div className="chips" role="group" aria-label="Filter by first move">
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={move === null}
+                onClick={() => setMove(null)}
+              >
+                Any
+              </button>
+              {MOVE_CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="chip"
+                  aria-pressed={move === c}
+                  onClick={() => setMove(move === c ? null : c)}
+                >
+                  {CATEGORY_LABELS[c]}
+                  {courses && <span className="chip-count">{moveCounts[c]}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         {state.status === 'failed' ? (
           <div role="alert" className="alert">
@@ -184,42 +218,62 @@ export default function LearnCatalogPage() {
                 : `${shown.length} ${shown.length === 1 ? 'course' : 'courses'}.`}
           </p>
         )}
-        {shown.length > 0 && (
-          <ul className="course-grid">
-            {shown.map((course) => {
-              const done = course.parentId ? null : (counts.get(course.id) ?? 0)
-              const thumb = courseThumbnail(course)
-              return (
-                <li key={course.id}>
-                  <Link className="course-card" to={coursePath(course.id)}>
-                    <MiniBoard fen={thumb.fen} orientation={thumb.orientation} />
-                    <span className="course-name">{course.name}</span>
-                    <span className="course-meta">
-                      <span className="eco">
-                        {course.ecoFrom === course.ecoTo
-                          ? course.ecoFrom
-                          : `${course.ecoFrom}-${course.ecoTo}`}
-                      </span>{' '}
-                      · {ecoFamily(course.ecoFrom)}
-                    </span>
-                    <span className="course-meta">
-                      {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'}
-                      {done !== null && ` · ${done} learned`}
-                    </span>
-                    {done !== null && (
-                      <span className="meter" aria-hidden="true">
-                        <span
-                          style={{ width: `${Math.round((done / course.lines.length) * 100)}%` }}
-                        />
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+        {groups.map((group) => (
+          <section
+            key={group.volume}
+            className="volume"
+            data-volume={group.volume}
+            aria-labelledby={`volume-${group.volume}`}
+          >
+            <h2 id={`volume-${group.volume}`} className="volume-title">
+              <span className="volume-letter" aria-hidden="true">
+                {group.volume === 'Other' ? '?' : group.volume}
+              </span>
+              {group.label.replace(/ \([A-E]\)$/, '')}
+              <span className="volume-count">{group.courses.length}</span>
+            </h2>
+            <ul className="course-grid">
+              {group.courses.map((course) => (
+                <CourseCard key={course.id} course={course} done={counts.get(course.id) ?? 0} />
+              ))}
+            </ul>
+          </section>
+        ))}
       </main>
     </>
+  )
+}
+
+function totalLines(courses: readonly Course[]): string {
+  return courses.reduce((n, c) => n + c.lines.length, 0).toLocaleString('en-US')
+}
+
+function ProgressMeter({ done, total }: { done: number; total: number }) {
+  return (
+    <span className="meter" aria-hidden="true">
+      <span style={{ width: `${Math.round((done / total) * 100)}%` }} />
+    </span>
+  )
+}
+
+function CourseCard({ course, done }: { course: Course; done: number }) {
+  const thumb = courseThumbnail(course)
+  // A variant course has no progress of its own: it is recorded under its family.
+  const started = !course.parentId && done > 0
+  return (
+    <li>
+      <Link className="course-card" to={coursePath(course.id)}>
+        <MiniBoard fen={thumb.fen} orientation={thumb.orientation} />
+        <span className="course-name">{course.name}</span>
+        <span className="course-meta figures">
+          <span className="eco">
+            {course.ecoFrom === course.ecoTo ? course.ecoFrom : `${course.ecoFrom}-${course.ecoTo}`}
+          </span>{' '}
+          · {course.lines.length} {course.lines.length === 1 ? 'line' : 'lines'}
+          {started && ` · ${done} learned`}
+        </span>
+        {started && <ProgressMeter done={done} total={course.lines.length} />}
+      </Link>
+    </li>
   )
 }

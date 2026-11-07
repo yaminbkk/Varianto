@@ -340,18 +340,7 @@ function Session({
         <p className="hint">
           Playing {side === 'white' ? 'White' : 'Black'} · {lineCount} of {total} lines learned
         </p>
-        <div className="actions">
-          <button type="button" className="btn" aria-pressed={soundOn} onClick={toggleSound}>
-            Sound: {soundOn ? 'on' : 'off'}
-          </button>
-          <EvalToggle
-            enabled={evalOn}
-            onToggle={toggleEval}
-            error={evaluation.state.status === 'error' ? evaluation.state.message : null}
-          />
-        </div>
-
-        <div className="board-layout">
+        <div className="board-layout lesson-layout">
           <div className="board-column">
             <div className="eval-layout">
               {evalOn && <EvalBar view={evaluation} orientation={side} />}
@@ -367,27 +356,38 @@ function Session({
             </div>
           </div>
 
-          <div>
-            <section className="panel" aria-labelledby="lesson-heading">
+          <div className="lesson-side">
+            <section className="panel lesson-prompt" aria-labelledby="lesson-heading">
               <h2 id="lesson-heading">Your move</h2>
-              <progress value={lesson.cursor} max={lesson.sans.length} aria-label="Line progress">
-                {lesson.cursor} of {lesson.sans.length}
-              </progress>
-              {notes.map((note) => (
-                <p key={note} className="explain">
-                  {note}
-                </p>
-              ))}
+              <div className="line-progress">
+                <progress value={lesson.cursor} max={lesson.sans.length} aria-label="Line progress">
+                  {lesson.cursor} of {lesson.sans.length}
+                </progress>
+                <span className="figures">
+                  {lesson.cursor} of {lesson.sans.length} moves
+                </span>
+              </div>
               {lesson.finished ? (
-                <p role="status">
+                <p role="status" className="prompt-text">
                   {lesson.solved
                     ? 'Line finished. You used Solve, so it is not counted yet.'
                     : 'Line learned!'}
                 </p>
               ) : (
-                <p role="status">{prompt}</p>
+                <p role="status" className="prompt-text">
+                  {prompt}
+                </p>
               )}
-              <div role="alert">{message && <p className="alert">{message}</p>}</div>
+              <div role="alert">
+                {message && (
+                  <p className="alert">
+                    <span className="sym" aria-hidden="true">
+                      ?
+                    </span>
+                    {message}
+                  </p>
+                )}
+              </div>
 
               {lesson.finished ? (
                 <div className="actions">
@@ -430,6 +430,25 @@ function Session({
                 <p className="hint">You have learned this line before.</p>
               )}
             </section>
+            {notes.length > 0 && (
+              <section className="lesson-notes" aria-label="What was played">
+                {notes.map((note) => (
+                  <p key={note} className="explain">
+                    {note}
+                  </p>
+                ))}
+              </section>
+            )}
+            <div className="settings" role="group" aria-label="Lesson settings">
+              <button type="button" className="btn" aria-pressed={soundOn} onClick={toggleSound}>
+                Sound: {soundOn ? 'on' : 'off'}
+              </button>
+              <EvalToggle
+                enabled={evalOn}
+                onToggle={toggleEval}
+                error={evaluation.state.status === 'error' ? evaluation.state.message : null}
+              />
+            </div>
           </div>
         </div>
       </main>
